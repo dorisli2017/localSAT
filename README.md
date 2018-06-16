@@ -17,4 +17,4 @@ todo: <br />
 
 
 <br /> 
-doing: 6 (05.08-05.13) References (probSat)<br />
+doing:make sure the local search is the original testing one in may References (probSat)<br />
