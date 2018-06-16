@@ -10,10 +10,10 @@ Pseodocode:<br />
 
 todo: <br />
 1.local randome generator  <br />
-2 simplified parameterparser (give the parameters directly in the header file)
-2.more initialization and random assignment  <br />
-3.flexible lookuptable  <br />
-4.tabu things<br />
+2 simplified parameterparser (give the parameters directly in the header file)  <br />
+3.more initialization and random assignment  <br />
+4.flexible lookuptable  <br />
+5.tabu things<br />
 
 
 <br /> 
