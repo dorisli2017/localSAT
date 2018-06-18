@@ -59,7 +59,7 @@ int fct;
 int ict;
 int rct1;
 int rct2;
-const vector<double> setD = {3.6, 1.0,1.0};
+const vector<double> setD = {3.6, 1.0,0.5};
 double cb;
 double eps;
 double lct;
