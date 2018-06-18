@@ -13,11 +13,12 @@ int main(int argc, char *argv[]){
 	readFile(fileName);
 	switch(ict){
 	case 0:randomAssignment();break;
-	default:biasAssignment();break;
+	case 1:biasAssignment();break;
+	default: randomBiasAssignment();
 	}
 	initLookUpTable();
 	int size;
-	debugProblem();
+	//debugProblem();
 	while(true){
 		for(unsigned int j = 0; j < maxFlips; j++){
 			size =  unsatCs.size();
@@ -32,7 +33,8 @@ int main(int argc, char *argv[]){
 		}
 		switch(rct){
 		case 0:randomAssignment();break;
-		default:biasAssignment();break;
+		case 1:biasAssignment();break;
+		default: randomBiasAssignment();
 		}
 	}
 	//test();
@@ -271,12 +273,27 @@ void biasAssignment(){
 	}
 	setAssignment();
 }
+
+void randomBiasAssignment(){
+	int sum;
+	for(int i = 0; i < numVs; i++){
+		sum = posOc[i] +negOc[i];
+		if(sum == 0){
+			assign[i] = true;
+		}
+		else{
+			assign[i] = (rand()%sum)<posOc[i];
+		}
+	}
+	setAssignment();
+}
 void randomAssignment(){
    	for(int j = 0; j < numVs; j++){
    		assign[j] = (rand()%2 ==1);
    	}
     setAssignment();
 }
+
 
 void setAssignment(){
    	for(int i = 0; i < numCs; i++){

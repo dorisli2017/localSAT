@@ -73,6 +73,7 @@ void parseLine(string line, int index);
 void testLine(string line);
 void initialAssignment();
 void biasAssignment();
+void randomBiasAssignment();
 void randomAssignment();
 void setAssignment();
 void printVariables();
