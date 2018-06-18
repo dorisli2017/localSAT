@@ -8,12 +8,13 @@
 #include "l.h"
 
 int main(int argc, char *argv[]){
-	parseOptions(argc, argv);
+	fileName = argv[1];
+	parseOptions(setB, setI,setD);
 	readFile(fileName);
 	initLookUpTable();
 	int size;
 	//debugProblem();
-	for(unsigned int i = 0; i <maxTries;i++){
+	while(true){
 		for(unsigned int j = 0; j < maxFlips; j++){
 			size =  unsatCs.size();
 			if (size == 0){
@@ -53,57 +54,16 @@ void debugAssign(){
 /*parse the argument (including options and filename)
  *using getopt_long to allow GNU-style long options as well as single-character options
  */
-void parseOptions(int argc, char *argv[]){
-	//opterr = 0;
-	//The argument longopts must be an array of long option structures.
-	struct option longopts[] ={{"output",no_argument,0,'o' },
-							   {"help",no_argument,0,'h' },
-							   {"tabu",no_argument,0,'t' },
-							   {"cb", required_argument,0, 'b'},
-							   {"seed", required_argument,0, 's'},
-							   {"cm", required_argument,0, 'm'},
-							   {"w", required_argument,0, 'w'},
-							   {"Rounds", required_argument,0, 'r'},
-							   {"Flips", required_argument,0, 'p'},
-							   { "eps", required_argument, 0, 'e' },
-							   {"function", required_argument,0, 'f'},
-	                           //the opt array must terminate with a all zero element.
-							   {0,0,0,0}
-	                          };
-	int result;
-	int option_index = 0;
-	while ((result = getopt_long(argc, argv, "ohts:m:w:r:p:e:f:b:",longopts,&option_index)) != -1){
-		switch (result) {
-		case 'o': output_flag = true; break;
-		case 'h':
-			printUsage();
-			exit(0);
-			break;
-		case 's': {
-			seed_flag = true;
-			seed = atoi(optarg);
-			break;
-		}
-		case 't': tabu_flag = true; break;
-		case 'b': cb = atof(optarg); break;
-		case 'm': cm = atof(optarg); break;
-		case 'w': w = atof(optarg); break;
-		case 'r': maxTries = strtoull(optarg,NULL,0); break;
-		case 'p': maxFlips = strtoull(optarg,NULL,0); break;
-		case 'e': eps = atof(optarg); break;
-		case 'f': fct = atoi(optarg); break;
-		default:
-			printUsage();
-			exit(0);
-		}
-	}
-	if (optind == argc) {
-		printf("ERROR: FILE is not given\n");
-		printUsage();
-		exit(0);
-	}
-	fileName = *(argv + optind);
+void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
+	tabu_flag = setB[0];
+	seed_flag = setB[1];
 
+	maxFlips =setI[0];
+	seed = setI[1];
+	fct= setI[2];
+
+	cb=setD[0];
+	eps= setD[1];
 //set the parameters
 	// set seed
 	if(seed_flag)srand(seed);
@@ -201,13 +161,12 @@ void parseLine(string line,int indexC){
 }
 void printOptions(){
 	printf("localSAT options: \n");
-	cout<<"c output_flag: "<<output_flag<<endl;
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
-	cout<<"c cb: "<<cb<<endl;
-	cout<<"c cm: "<<cm<<endl;
-	cout<<"c w: "<<w<<endl;
-	cout<<"c maxTries: "<<maxTries<<endl;
+	cout<<"c seed_flag: "<<seed_flag<<endl;
 	cout<<"c maxFlips: "<<maxFlips<<endl;
+	cout<<"c seed: "<<seed<<endl;
+	cout<<"c fct: "<<fct<<endl;
+	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	switch(fct){
 	case 0:{
@@ -217,16 +176,12 @@ void printOptions(){
 		cout<< "pow((eps+break),-cb)" << endl;
 		break;
 		  }
-	case 1:{
-		cout<<"c exponential function with make"<<endl;
-		cout<<"c cm: "<<cm<<endl;
+	default:{
+		cout<<"c exponential function"<<endl;
 		cout<<"c cb: "<<cb<<endl;
-		cout<< "pow(cm,make)*pow(cb,-break)"<< endl;
+		cout<< "pow(cb,-break)"<< endl;
 		break;
 		   }
-	case 2:{
-		cout<<"c equal function (== 1.0)"<<endl;
-	       }
 	}
 	cout<<"c seed: "<<seed<<endl;
 }

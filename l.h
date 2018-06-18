@@ -47,23 +47,23 @@ vector<int> clauseT;
 
 
 /*settings*/
-bool output_flag;
+const vector<bool> setB= {false, false};
 bool tabu_flag;
 bool seed_flag;
 /*option values*/
 
-unsigned long long int maxTries = ULLONG_MAX;
-unsigned long long int maxFlips = ULLONG_MAX;
+const vector<int> setI= {INT_MAX,0,2};
+int maxFlips;
 int seed;
-double cb=3.6;
-double cm=0.5;
-double w = 0.3;// The probability used in the WALKSAT algorithm
-float eps= 1.0;
-int fct= 2;
+int fct;
+
+const vector<double> setD = {3.6, 1.0};
+double cb;
+double eps;
 
 
 /*methods*/
-void parseOptions(int argc, char *argv[]);
+void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
 void printOptions();
 void readFile(const char* fileName);
 void memAllocate(string buff);
