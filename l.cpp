@@ -11,7 +11,10 @@ int main(int argc, char *argv[]){
 	fileName = argv[1];
 	parseOptions(setB, setI,setD);
 	readFile(fileName);
-	biasAssignment();
+	switch(ict){
+	case 0:randomAssignment();break;
+	default:biasAssignment();break;
+	}
 	initLookUpTable();
 	int size;
 	//debugProblem();
@@ -62,7 +65,7 @@ void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector
 	maxFlips =setI[0];
 	seed = setI[1];
 	fct= setI[2];
-
+	ict = setI[3];
 	cb=setD[0];
 	eps= setD[1];
 //set the parameters
@@ -173,6 +176,7 @@ void printOptions(){
 	cout<<"c maxFlips: "<<maxFlips<<endl;
 	cout<<"c seed: "<<seed<<endl;
 	cout<<"c fct: "<<fct<<endl;
+	cout<<"c ict: "<<ict<<endl;
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	switch(fct){
@@ -260,7 +264,6 @@ void biasAssignment(){
 			}
 	}
 	setAssignment();
-
 }
 void randomAssignment(){
    	for(int j = 0; j < numVs; j++){
