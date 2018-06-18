@@ -52,11 +52,12 @@ bool tabu_flag;
 bool seed_flag;
 /*option values*/
 
-const vector<int> setI= {INT_MAX,0,2,1};
+const vector<int> setI= {INT_MAX,0,2,1,0};
 int maxFlips;
 int seed;
 int fct;
 int ict;
+int rct;
 
 const vector<double> setD = {3.6, 1.0};
 double cb;
