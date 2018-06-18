@@ -8,6 +8,7 @@
 #include "l.h"
 
 int main(int argc, char *argv[]){
+	int rct;
 	fileName = argv[1];
 	parseOptions(setB, setI,setD);
 	readFile(fileName);
@@ -31,10 +32,11 @@ int main(int argc, char *argv[]){
 			}
 			search_prob();
 		}
-		switch(rct){
-		case 0:randomAssignment();break;
-		case 1:biasAssignment();break;
-		default: randomBiasAssignment();
+		rct = rand()%100;
+		if(rct < rct1) randomAssignment();
+		else{
+			if(rct< rct2) biasAssignment();
+			else randomBiasAssignment();
 		}
 	}
 	//test();
@@ -71,8 +73,8 @@ void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector
 	seed = setI[1];
 	fct= setI[2];
 	ict = setI[3];
-	rct = setI[4];
-
+	rct1 = setI[4];
+	rct2 = setI[5];
 	cb=setD[0];
 	eps= setD[1];
 //set the parameters
@@ -184,7 +186,8 @@ void printOptions(){
 	cout<<"c seed: "<<seed<<endl;
 	cout<<"c fct: "<<fct<<endl;
 	cout<<"c ict: "<<ict<<endl;
-	cout<<"c rct: "<<rct<<endl;
+	cout<<"c rct1: "<<rct1<<endl;
+	cout<<"c rct2: "<<rct2<<endl;
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	switch(fct){
