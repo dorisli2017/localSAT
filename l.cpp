@@ -17,7 +17,10 @@ int main(int argc, char *argv[]){
 	case 1:biasAssignment();break;
 	default: randomBiasAssignment();
 	}
-	initLookUpTable();
+	switch (fct){
+	case 0:initLookUpTable_poly();lookUp = LookUpTable_poly;break;
+	default:initLookUpTable_exp();lookUp = LookUpTable_exp;break;
+	}
 	int size;
 	//debugProblem();
 	while(true){
@@ -77,15 +80,12 @@ void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector
 	rct2 = setI[5];
 	cb=setD[0];
 	eps= setD[1];
+	lct = setD[2];
 //set the parameters
 	// set seed
 	if(seed_flag)srand(seed);
 	else srand (0);
 	//else srand (time(NULL));
-	switch (fct){
-	case 0:initLookUpTable = initLookUpTable_poly;break;
-	default:initLookUpTable = initLookUpTable_exp;break;
-	}
 }
 // construct the Problem with fill information of the input file
 void readFile(const char* fileName){
@@ -190,6 +190,7 @@ void printOptions(){
 	cout<<"c rct2: "<<rct2<<endl;
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
+	cout<<"c lct: "<<lct<<endl;
 	switch(fct){
 	case 0:{
 		cout<<"c polynomial function"<<endl;
@@ -248,15 +249,12 @@ void printNumP(){
 
 void initialAssignment(){
 	for(int i = 0; i < numVs; i++){
-			if(posOc[i] > negOc[i]){
-				if(posOc[i]> maxOcc) maxOcc = posOc[i];
-			}
-			else{
-				if(negOc[i]> maxOcc) maxOcc = negOc[i];
-			}
-			posC[i].reserve(posOc[i]);
-			negC[i].reserve(negOc[i]);
-		}
+		if(posOc[i]> maxOcc) maxOcc = posOc[i];
+		if(negOc[i]> maxOcc) maxOcc = negOc[i];
+		posC[i].reserve(posOc[i]);
+		negC[i].reserve(negOc[i]);
+	}
+	maxOcc = maxOcc*lct;
 	for(int j = 0; j < numCs; j++){
 		for (std::vector<int>::const_iterator i = clauses[j].begin(); i != clauses[j].end(); ++i){
 			if(*i < 0) negC[-(*i)].push_back(j);
@@ -327,7 +325,12 @@ int getFlipCandidate(int cIndex){
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
 		//if(bre == 0) return *i;
+		if(bre < maxOcc){
 		sum+= lookUpTable[bre];
+		}
+		else{
+			lookUp(bre);
+		}
 		probs[j]= sum;
 		j++;
 	}
@@ -500,6 +503,7 @@ void printUsage(){
 
 
 void initLookUpTable_exp(){
+
 	lookUpTable = (double*)malloc(sizeof(double) * maxOcc);
 	for(int i = 0; i < maxOcc;i++){
 		lookUpTable[i] = pow(cb,-i);
@@ -512,4 +516,9 @@ void initLookUpTable_poly(){
 		lookUpTable[i] = pow((eps+i),-cb);
 	}
 }
-
+double LookUpTable_exp(int bre){
+	return pow(cb,-bre);
+};
+double LookUpTable_poly(int bre){
+	return pow((eps+bre),-cb);
+};

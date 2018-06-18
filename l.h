@@ -59,9 +59,10 @@ int fct;
 int ict;
 int rct1;
 int rct2;
-const vector<double> setD = {3.6, 1.0};
+const vector<double> setD = {3.6, 1.0,1.0};
 double cb;
 double eps;
+double lct;
 
 
 /*methods*/
@@ -82,7 +83,9 @@ void printAssignment();
 void printUnsatCs();
 void printNumP();
 int getFlipCandidate(int cIndex);
-void (*initLookUpTable)(void) = NULL;
+double (*lookUp)(int) = NULL;
+double LookUpTable_exp(int);
+double LookUpTable_poly(int);
 void initLookUpTable_exp(void);
 void initLookUpTable_poly(void);
 void flip(int j);
