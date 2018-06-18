@@ -70,6 +70,7 @@ void memAllocate(string buff);
 void parseLine(string line, int index);
 void testLine(string line);
 void initialAssignment();
+void biasAssignment();
 void randomAssignment();
 void setAssignment();
 void printVariables();

@@ -11,6 +11,7 @@ int main(int argc, char *argv[]){
 	fileName = argv[1];
 	parseOptions(setB, setI,setD);
 	readFile(fileName);
+	biasAssignment();
 	initLookUpTable();
 	int size;
 	//debugProblem();
@@ -121,6 +122,12 @@ void memAllocate(string buff){
 	assign = (bool*)malloc(sizeof(bool) * numVs);
 	posOc = (int*) malloc(sizeof(int) * numVs);
 	negOc = (int*) malloc(sizeof(int) * numVs);
+	for(int i = 0; i < numVs; i++){
+		posOc[i] = 0;
+	}
+	for(int i = 0; i < numVs; i++){
+		negOc[i] = 0;
+	}
 	clauseT.reserve(numVs);
 }
 void parseLine(string line,int indexC){
@@ -227,11 +234,9 @@ void printNumP(){
 void initialAssignment(){
 	for(int i = 0; i < numVs; i++){
 			if(posOc[i] > negOc[i]){
-				assign[i] = true;
 				if(posOc[i]> maxOcc) maxOcc = posOc[i];
 			}
 			else{
-				assign[i] = false;
 				if(negOc[i]> maxOcc) maxOcc = negOc[i];
 			}
 			posC[i].reserve(posOc[i]);
@@ -243,13 +248,21 @@ void initialAssignment(){
 			else  posC[(*i)].push_back(j);
 		}
 	}
-	setAssignment();
 }
 
+void biasAssignment(){
+	for(int i = 0; i < numVs; i++){
+			if(posOc[i] > negOc[i]){
+				assign[i] = true;
+			}
+			else{
+				assign[i] = false;
+			}
+	}
+	setAssignment();
+
+}
 void randomAssignment(){
-   	for(int i = 0; i < numCs; i++){
-   		numP[i] = 0;
-   	}
    	for(int j = 0; j < numVs; j++){
    		assign[j] = (rand()%2 ==1);
    	}
@@ -257,6 +270,9 @@ void randomAssignment(){
 }
 
 void setAssignment(){
+   	for(int i = 0; i < numCs; i++){
+   		numP[i] = 0;
+   	}
    	for(int j = 0; j < numVs; j++){
 		if(assign[j] == false){
 	   		for (std::vector<int>::const_iterator i = negC[j].begin(); i != negC[j].end(); ++i){
