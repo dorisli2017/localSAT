@@ -2,7 +2,7 @@
  * main.h
  *
  *  Created on: May 8, 2018
- *      Author: Guangpin 
+ *      Author: Guangpi 
  */
 
 #ifndef MAIN_H_
@@ -47,7 +47,7 @@ vector<int> clauseT;
 int* tabuS;
 
 /*settings*/
-const vector<bool> setB= {false, false};
+const vector<bool> setB= {true, false};
 bool tabu_flag;
 bool seed_flag;
 /*option values*/
