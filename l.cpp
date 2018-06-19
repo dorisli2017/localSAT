@@ -318,7 +318,7 @@ void setAssignment(){
    		}
    	}
 }
-int getFlipCandidate(int cIndex){
+int getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre;
 	double sum=0,randD;
@@ -344,28 +344,28 @@ int getFlipCandidate(int cIndex){
 	assert(false);
 	return 0;
 }
-void flip(int j){
+void flip(int literal){
 	std::vector<int>::const_iterator i;
-	if(j > 0){
-   		for (i = negC[j].begin(); i != negC[j].end(); ++i){
+	if(literal > 0){
+   		for (i = negC[literal].begin(); i != negC[literal].end(); ++i){
    			numP[*i]--;
    			if(numP[*i] == 0) unsatCs.push_back(*i);
    		}
-		for (i = posC[j].begin(); i != posC[j].end(); ++i){
+		for (i = posC[literal].begin(); i != posC[literal].end(); ++i){
    			numP[*i]++;
 		}
 
-		assign[j] = true;
+		assign[literal] = true;
 	}
 	else{
-   		for (i = negC[-j].begin(); i != negC[-j].end(); ++i){
+   		for (i = negC[-literal].begin(); i != negC[-literal].end(); ++i){
    			numP[*i]++;
    		}
-		for (i = posC[-j].begin(); i != posC[-j].end(); ++i){
+		for (i = posC[-literal].begin(); i != posC[-literal].end(); ++i){
    			numP[*i]--;
    			if(numP[*i] == 0) unsatCs.push_back(*i);
 		}
-		assign[-j]= false;
+		assign[-literal]= false;
 	}
 }
 void test(){
@@ -422,10 +422,10 @@ void testLine(string line){
 	exit(EXIT_FAILURE);
 
 }
-int computeBreakScore(int index){
+int computeBreakScore(int literal){
     int score = 0;
-    int aIndex = abs(index);
-    vector<int>& occList =(index < 0)? posC[aIndex] :negC[aIndex];
+    int aIndex = abs(literal);
+    vector<int>& occList =(literal < 0)? posC[aIndex] :negC[aIndex];
     for(std::vector<int>::const_iterator i = occList.begin(); i != occList.end(); ++i) {
         if (numP[*i]== 1) {
             score++;
@@ -435,11 +435,11 @@ int computeBreakScore(int index){
     return score;
 }
 
-double func_exp(int index){
-	return pow(cb,-computeBreakScore(index));
+double func_exp(int literal){
+	return pow(cb,-computeBreakScore(literal));
 }
-double func_poly(int index){
-	return pow((eps+computeBreakScore(index)),-cb);
+double func_poly(int literal){
+	return pow((eps+computeBreakScore(literal)),-cb);
 }
 
 void search_prob(){
@@ -450,10 +450,10 @@ void search_prob(){
 		unsatCs.pop_back();
 		return;
 	}
-	int flipVindex = getFlipCandidate(flipCindex);
+	int flipLindex = getFlipLiteral(flipCindex);
 	unsatCs[randC]=unsatCs.back();
 	unsatCs.pop_back();
-	flip(flipVindex);
+	flip(flipLindex);
 }
 
 
