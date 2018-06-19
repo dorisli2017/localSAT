@@ -140,6 +140,12 @@ void memAllocate(string buff){
 	for(int i = 0; i < numVs; i++){
 		negOc[i] = 0;
 	}
+	if(tabu_flag){
+		tabuS = (int*) malloc(sizeof(int) * numVs);
+		for(int i = 0; i < numVs; i++){
+			tabuS[i] = 0;
+		}
+	}
 	clauseT.reserve(numVs);
 }
 void parseLine(string line,int indexC){
@@ -320,16 +326,21 @@ void setAssignment(){
 }
 int getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
-	int j=0,bre;
+	int j=0,bre,min= numCs+1;
 	double sum=0,randD;
+	int greedyLiteral = 0, randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-		//if(bre == 0) return *i;
+		if(tabu_flag &&bre == 0 && tabuS[*i] == 0) return *i;
+		if(bre < min){
+			min = bre;
+			greedyLiteral = *i;
+		}
 		if(bre < maxOcc){
 		sum+= lookUpTable[bre];
 		}
 		else{
-			lookUp(bre);
+		sum+=lookUp(bre);
 		}
 		probs[j]= sum;
 		j++;
@@ -340,8 +351,13 @@ int getFlipLiteral(int cIndex){
 		if(probs[i]< randD){
 			continue;
 		}
-		return vList[i];
+		randomLiteral= vList[i];
+		break;
 	}
+	if(tabu_flag &&tabuS[abs(greedyLiteral)] < tabuS[abs(randomLiteral)]){
+		return greedyLiteral;
+	}
+	return randomLiteral;
 	assert(false);
 	return 0;
 }
@@ -455,6 +471,7 @@ void search_prob(){
 	unsatCs[randC]=unsatCs.back();
 	unsatCs.pop_back();
 	flip(flipLindex);
+	if(tabu_flag) tabuS[abs(flipLindex)]++;
 }
 
 

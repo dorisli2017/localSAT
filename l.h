@@ -44,7 +44,7 @@ int* negOc;
 int maxOcc;
 double* lookUpTable;
 vector<int> clauseT;
-
+int* tabuS;
 
 /*settings*/
 const vector<bool> setB= {false, false};
