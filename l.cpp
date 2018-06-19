@@ -337,9 +337,10 @@ int getFlipLiteral(int cIndex){
 	randD = ((double)rand()/RAND_MAX)*sum;
 	assert(randD >= 0);
 	for(int i = 0; i < j;i++){
-		if(probs[i]> randD){
-			return vList[i];
+		if(probs[i]< randD){
+			continue;
 		}
+		return vList[i];
 	}
 	assert(false);
 	return 0;
