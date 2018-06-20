@@ -78,6 +78,7 @@ void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector
 	ict = setI[3];
 	rct1 = setI[4];
 	rct2 = setI[5];
+	cct= setI[6];
 	cb=setD[0];
 	eps= setD[1];
 	lct = setD[2];
@@ -194,6 +195,7 @@ void printOptions(){
 	cout<<"c ict: "<<ict<<endl;
 	cout<<"c rct1: "<<rct1<<endl;
 	cout<<"c rct2: "<<rct2<<endl;
+	cout<<"c cct: "<<cct<<endl;
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	cout<<"c lct: "<<lct<<endl;
@@ -306,6 +308,11 @@ void setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
+	if( tabu_flag && rand()%100<cct){
+		for(int i = 0; i < numVs; i++){
+			tabuS[i] =0;
+		}
+	}
    	for(int j = 0; j < numVs; j++){
 		if(assign[j] == false){
 	   		for (std::vector<int>::const_iterator i = negC[j].begin(); i != negC[j].end(); ++i){
@@ -331,7 +338,7 @@ int getFlipLiteral(int cIndex){
 	int greedyLiteral = 0, randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-		if(tabu_flag &&bre == 0 && tabuS[abs(*i)] == 0) return *i;
+//		if(tabu_flag &&bre == 0 && tabuS[abs(*i)] == 0) return *i;
 		if(bre < min){
 			min = bre;
 			greedyLiteral = *i;

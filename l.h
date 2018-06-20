@@ -47,18 +47,19 @@ vector<int> clauseT;
 int* tabuS;
 
 /*settings*/
-const vector<bool> setB= {true, false};
+const vector<bool> setB= {false, false};
 bool tabu_flag;
 bool seed_flag;
 /*option values*/
 
-const vector<int> setI= {INT_MAX,0,2,1,100,0};
+const vector<int> setI= {INT_MAX,0,2,1,100,0,50};
 int maxFlips;
 int seed;
 int fct;
 int ict;
 int rct1;
 int rct2;
+int cct;
 const vector<double> setD = {3.6, 1.0,0.5};
 double cb;
 double eps;
