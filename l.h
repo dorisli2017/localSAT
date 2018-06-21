@@ -47,7 +47,7 @@ vector<int> clauseT;
 int* tabuS;
 
 /*settings*/
-const vector<bool> setB= {false, false};
+const vector<bool> setB= {true, false};
 bool tabu_flag;
 bool seed_flag;
 /*option values*/

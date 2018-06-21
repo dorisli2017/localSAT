@@ -338,7 +338,7 @@ int getFlipLiteral(int cIndex){
 	int greedyLiteral = 0, randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-//		if(tabu_flag &&bre == 0 && tabuS[abs(*i)] == 0) return *i;
+		if(tabu_flag &&bre == 0 && tabuS[abs(*i)] == 0) return *i;
 		if(bre < min){
 			min = bre;
 			greedyLiteral = *i;
