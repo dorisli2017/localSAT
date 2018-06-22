@@ -39,6 +39,7 @@ int* posOc;
 int* negOc;
 int maxOcc;
 vector<int> clauseT;
+bool sat = false;
 
 
 /*methods*/
@@ -72,6 +73,7 @@ class Process{
 
 
 	int maxFlips;
+	int maxSteps;
 	int seed;
 	int fct;
 	int ict;

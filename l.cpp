@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 	fileName = argv[1];
 	readFile(fileName);
 	const vector<bool> setB= {false, false};
-	const vector<int> setI= {INT_MAX,0,2,1,100,0,50};
+	const vector<int> setI= {INT_MAX,10,0,2,1,100,0,50};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
 	//debugProblem();
@@ -28,6 +28,7 @@ void debugProblem(){
 }
 void Process::debugAssign(){
 	/* Testing code**********************************/
+		printOptions();
 	   	printAssignment();
 	   	printUnsatCs();
 	   	printNumP();
@@ -79,12 +80,13 @@ void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,con
 	seed_flag = setB[1];
 
 	maxFlips =setI[0];
-	seed = setI[1];
-	fct= setI[2];
-	ict = setI[3];
-	rct1 = setI[4];
-	rct2 = setI[5];
-	cct= setI[6];
+	maxSteps = setI[1];
+	seed = setI[2];
+	fct= setI[3];
+	ict = setI[4];
+	rct1 = setI[5];
+	rct2 = setI[6];
+	cct= setI[7];
 	cb=setD[0];
 	eps= setD[1];
 	lct = setD[2];
@@ -182,6 +184,7 @@ void Process::printOptions(){
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
 	cout<<"c seed_flag: "<<seed_flag<<endl;
 	cout<<"c maxFlips: "<<maxFlips<<endl;
+	cout<<"c maxSteps: "<<maxSteps<<endl;
 	cout<<"c seed: "<<seed<<endl;
 	cout<<"c fct: "<<fct<<endl;
 	cout<<"c ict: "<<ict<<endl;
@@ -326,15 +329,19 @@ void Process::setAssignment(){
 void Process::optimal(){
 	int rct;
 	while(true){
-		for(unsigned int j = 0; j < maxFlips; j++){
-			if (unsatCs.size()== 0){
-				//debugAssign();
-				test();
-				cout<< "s SATISFIABLE"<< endl;
-				//printAssignment();
-				return;
+		for(unsigned int i = 0; i < maxFlips; i++){
+			for(unsigned int j = 0; j < maxSteps; j++){
+				if (unsatCs.size()== 0){
+					//debugAssign();
+					sat = true;
+					test();
+					cout<< "s SATISFIABLE"<< endl;
+					//printAssignment();
+					return;
+				}
+				search_prob();
 			}
-			search_prob();
+			if(sat) return;
 		}
 		rct = rand()%100;
 		if(rct < rct1) randomAssignment();
