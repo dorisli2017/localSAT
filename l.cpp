@@ -8,46 +8,17 @@
 #include "l.h"
 
 int main(int argc, char *argv[]){
-	int rct;
 	fileName = argv[1];
-	parseOptions(setB, setI,setD);
 	readFile(fileName);
-	switch(ict){
-	case 0:randomAssignment();break;
-	case 1:biasAssignment();break;
-	default: randomBiasAssignment();
-	}
-	switch (fct){
-	case 0:initLookUpTable_poly();lookUp = LookUpTable_poly;break;
-	default:initLookUpTable_exp();lookUp = LookUpTable_exp;break;
-	}
-	int size;
+	const vector<bool> setB= {true, false};
+	const vector<int> setI= {INT_MAX,0,2,1,100,0,50};
+	const vector<double> setD = {3.6, 1.0,0.5};
+	Process process = Process(setB, setI,setD);
 	//debugProblem();
-	while(true){
-		for(unsigned int j = 0; j < maxFlips; j++){
-			size =  unsatCs.size();
-			if (size == 0){
-				//debugAssign();
-				test();
-				cout<< "s SATISFIABLE"<< endl;
-				//printAssignment();
-				return 0;
-			}
-			search_prob();
-		}
-		rct = rand()%100;
-		if(rct < rct1) randomAssignment();
-		else{
-			if(rct< rct2) biasAssignment();
-			else randomBiasAssignment();
-		}
-	}
-	//test();
-	debugAssign();
-    return 0;
+	//process.debugAssign();
+	process.optimal();
 }
 void debugProblem(){
-	printOptions();
 	printVariables();
 	printClauses();
 	cout<< "Occurences:"<< endl;
@@ -55,7 +26,7 @@ void debugProblem(){
 		cout<< i<< ":"<<posOc[i]<< " "<<negOc[i]<< endl;
 	}
 }
-void debugAssign(){
+void Process::debugAssign(){
 	/* Testing code**********************************/
 	   	printAssignment();
 	   	printUnsatCs();
@@ -65,10 +36,45 @@ void debugAssign(){
 	/*Testing code**********************************/
 
 }
+Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
+	parseOptions(setB, setI,setD);
+	//set the parameters
+		// set seed
+	if(seed_flag)srand(seed);
+	else srand (0);
+	//else srand (time(NULL));
+	   // set tabuS
+	if(tabu_flag){
+		tabuS = (int*) malloc(sizeof(int) * numVs);
+		for(int i = 0; i < numVs; i++){
+			tabuS[i] = 0;
+		}
+	}
+	maxLOcc = maxOcc*lct;
+	numP = (int*) malloc(sizeof(int) * numCs);
+	probs = (double*)malloc(sizeof(double) * numVs);
+	assign = (bool*)malloc(sizeof(bool) * numVs);
+	//set inititial assignment
+	switch(ict){
+	case 0:randomAssignment();break;
+	case 1:biasAssignment();break;
+	default: randomBiasAssignment();
+	}
+	//set lookuptable
+	switch (fct){
+	case 0:initLookUpTable_poly();
+			lookUp =&Process::LookUpTable_poly;
+			break;
+	default:initLookUpTable_exp();
+			lookUp =&Process::LookUpTable_exp;
+			break;
+	}
+}
+
 /*parse the argument (including options and filename)
  *using getopt_long to allow GNU-style long options as well as single-character options
  */
-void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
+void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
 	tabu_flag = setB[0];
 	seed_flag = setB[1];
 
@@ -82,11 +88,6 @@ void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector
 	cb=setD[0];
 	eps= setD[1];
 	lct = setD[2];
-//set the parameters
-	// set seed
-	if(seed_flag)srand(seed);
-	else srand (0);
-	//else srand (time(NULL));
 }
 // construct the Problem with fill information of the input file
 void readFile(const char* fileName){
@@ -130,9 +131,6 @@ void memAllocate(string buff){
 	clauses = new vector<int>[numCs];
 	posC= new vector<int>[numVs];
 	negC= new vector<int>[numVs];
-	numP = (int*) malloc(sizeof(int) * numCs);
-	probs = (double*)malloc(sizeof(double) * numVs);
-	assign = (bool*)malloc(sizeof(bool) * numVs);
 	posOc = (int*) malloc(sizeof(int) * numVs);
 	negOc = (int*) malloc(sizeof(int) * numVs);
 	for(int i = 0; i < numVs; i++){
@@ -140,12 +138,6 @@ void memAllocate(string buff){
 	}
 	for(int i = 0; i < numVs; i++){
 		negOc[i] = 0;
-	}
-	if(tabu_flag){
-		tabuS = (int*) malloc(sizeof(int) * numVs);
-		for(int i = 0; i < numVs; i++){
-			tabuS[i] = 0;
-		}
 	}
 	clauseT.reserve(numVs);
 }
@@ -185,7 +177,7 @@ void parseLine(string line,int indexC){
 	perror("a clause line does not terminates");
 	exit(EXIT_FAILURE);
 }
-void printOptions(){
+void Process::printOptions(){
 	printf("localSAT options: \n");
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
 	cout<<"c seed_flag: "<<seed_flag<<endl;
@@ -231,7 +223,7 @@ void printClauses(){
    		printVector(clauses[i]);
    	}
 }
-void printAssignment(){
+void Process::printAssignment(){
 	cout<< "v ";
 	for(int i = 1; i < numVs; i++){
 		if(assign[i]) cout <<i<<" ";
@@ -239,12 +231,12 @@ void printAssignment(){
 	}
 	cout <<endl ;
 }
-void printUnsatCs(){
+void Process::printUnsatCs(){
 	cout<< "Unsatisfied clauses ";
 	printVector(unsatCs);
 	cout <<endl ;
 }
-void printNumP(){
+void Process::printNumP(){
 	cout<< "numP: ";
 	for(int i = 0; i < numCs; i++){
 		cout << numP[i]<< " ";
@@ -262,7 +254,6 @@ void initialAssignment(){
 		posC[i].reserve(posOc[i]);
 		negC[i].reserve(negOc[i]);
 	}
-	maxOcc = maxOcc*lct;
 	for(int j = 0; j < numCs; j++){
 		for (std::vector<int>::const_iterator i = clauses[j].begin(); i != clauses[j].end(); ++i){
 			if(*i < 0) negC[-(*i)].push_back(j);
@@ -271,7 +262,7 @@ void initialAssignment(){
 	}
 }
 
-void biasAssignment(){
+void Process::biasAssignment(){
 	for(int i = 0; i < numVs; i++){
 			if(posOc[i] > negOc[i]){
 				assign[i] = true;
@@ -283,7 +274,7 @@ void biasAssignment(){
 	setAssignment();
 }
 
-void randomBiasAssignment(){
+void Process::randomBiasAssignment(){
 	int sum;
 	for(int i = 0; i < numVs; i++){
 		sum = posOc[i] +negOc[i];
@@ -296,7 +287,7 @@ void randomBiasAssignment(){
 	}
 	setAssignment();
 }
-void randomAssignment(){
+void Process::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
    		assign[j] = (rand()%2 ==1);
    	}
@@ -304,7 +295,7 @@ void randomAssignment(){
 }
 
 
-void setAssignment(){
+void Process::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
@@ -331,7 +322,29 @@ void setAssignment(){
    		}
    	}
 }
-int getFlipLiteral(int cIndex){
+
+void Process::optimal(){
+	int rct;
+	while(true){
+		for(unsigned int j = 0; j < maxFlips; j++){
+			if (unsatCs.size()== 0){
+				//debugAssign();
+				test();
+				cout<< "s SATISFIABLE"<< endl;
+				//printAssignment();
+				return;
+			}
+			search_prob();
+		}
+		rct = rand()%100;
+		if(rct < rct1) randomAssignment();
+		else{
+			if(rct< rct2) biasAssignment();
+			else randomBiasAssignment();
+		}
+	}
+}
+int Process::getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre,min= numCs+1;
 	double sum=0,randD;
@@ -343,11 +356,11 @@ int getFlipLiteral(int cIndex){
 			min = bre;
 			greedyLiteral = *i;
 		}
-		if(bre < maxOcc){
+		if(bre < maxLOcc){
 		sum+= lookUpTable[bre];
 		}
 		else{
-		sum+=lookUp(bre);
+		sum+=(this->*Process::lookUp)(bre);
 		}
 		probs[j]= sum;
 		j++;
@@ -366,7 +379,7 @@ int getFlipLiteral(int cIndex){
 	}
 	return randomLiteral;
 }
-void flip(int literal){
+void Process::flip(int literal){
 	std::vector<int>::const_iterator i;
 	if(literal > 0){
    		for (i = negC[literal].begin(); i != negC[literal].end(); ++i){
@@ -390,7 +403,7 @@ void flip(int literal){
 		assign[-literal]= false;
 	}
 }
-void test(){
+void Process::test(){
 	ifstream fp;
 	fp.open(fileName,std::ios::in);
 	if(!fp.is_open()){
@@ -416,7 +429,7 @@ void test(){
    	cout<< "tested" << endl;
 }
 
-void testLine(string line){
+void Process::testLine(string line){
 	char* str = strdup(line.c_str());
     const char s[2] = " ";
     int lit;
@@ -444,7 +457,7 @@ void testLine(string line){
 	exit(EXIT_FAILURE);
 
 }
-int computeBreakScore(int literal){
+int Process::computeBreakScore(int literal){
     int score = 0;
     int aIndex = abs(literal);
     vector<int>& occList =(literal < 0)? posC[aIndex] :negC[aIndex];
@@ -457,14 +470,14 @@ int computeBreakScore(int literal){
     return score;
 }
 
-double func_exp(int literal){
+double Process::func_exp(int literal){
 	return pow(cb,-computeBreakScore(literal));
 }
-double func_poly(int literal){
+double Process::func_poly(int literal){
 	return pow((eps+computeBreakScore(literal)),-cb);
 }
 
-void search_prob(){
+void Process::search_prob(){
 	int randC = rand()%unsatCs.size();
 	int flipCindex = unsatCs[randC];
 	if(numP[flipCindex] > 0){
@@ -525,23 +538,24 @@ void printUsage(){
 }
 
 
-void initLookUpTable_exp(){
+void Process::initLookUpTable_exp(){
 
-	lookUpTable = (double*)malloc(sizeof(double) * maxOcc);
-	for(int i = 0; i < maxOcc;i++){
+	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
+	for(int i = 0; i < maxLOcc;i++){
 		lookUpTable[i] = pow(cb,-i);
 	}
 }
 
-void initLookUpTable_poly(){
-	lookUpTable = (double*)malloc(sizeof(double) * maxOcc);
-	for(int i = 0; i < maxOcc;i++){
+void Process::initLookUpTable_poly(){
+	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
+	for(int i = 0; i < maxLOcc;i++){
 		lookUpTable[i] = pow((eps+i),-cb);
 	}
 }
-double LookUpTable_exp(int bre){
+
+double Process::LookUpTable_exp(int bre){
 	return pow(cb,-bre);
 };
-double LookUpTable_poly(int bre){
+double Process::LookUpTable_poly(int bre){
 	return pow((eps+bre),-cb);
 };

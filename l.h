@@ -33,71 +33,80 @@ int numCs;
 int numVs;
 vector<int>* clauses;
 struct V *variables;
-int* numP;
-vector<int> unsatCs;
-double* probs;
-bool* assign;
 vector<int>* posC;
 vector<int>* negC;
 int* posOc;
 int* negOc;
 int maxOcc;
-double* lookUpTable;
 vector<int> clauseT;
-int* tabuS;
-
-/*settings*/
-const vector<bool> setB= {true, false};
-bool tabu_flag;
-bool seed_flag;
-/*option values*/
-
-const vector<int> setI= {INT_MAX,0,2,1,100,0,50};
-int maxFlips;
-int seed;
-int fct;
-int ict;
-int rct1;
-int rct2;
-int cct;
-const vector<double> setD = {3.6, 1.0,0.5};
-double cb;
-double eps;
-double lct;
 
 
 /*methods*/
-void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
-void printOptions();
+
 void readFile(const char* fileName);
 void memAllocate(string buff);
 void parseLine(string line, int index);
-void testLine(string line);
 void initialAssignment();
-void biasAssignment();
-void randomBiasAssignment();
-void randomAssignment();
-void setAssignment();
 void printVariables();
 void printClauses();
-void printAssignment();
-void printUnsatCs();
-void printNumP();
-int getFlipLiteral(int cIndex);
-double (*lookUp)(int) = NULL;
-double LookUpTable_exp(int literal);
-double LookUpTable_poly(int literal);
-void initLookUpTable_exp(void);
-void initLookUpTable_poly(void);
-void flip(int literal);
 void debugProblem();
-void debugAssign();
-void test();
-int computeBreakScore(int literal);
-void search_prob();
 int getFlipCandidate_wa(int cIndex);
 int getFlipCandidate_max(int cIndex);
 void printVector(vector<int>& vec);
 void printUsage();
 
+
+class Process{
+	int* numP;
+	vector<int> unsatCs;
+	double* probs;
+	bool* assign;
+	double* lookUpTable;
+	int* tabuS;
+	int maxLOcc;
+
+	/*settings*/
+	bool tabu_flag;
+	bool seed_flag;
+	/*option values*/
+
+
+	int maxFlips;
+	int seed;
+	int fct;
+	int ict;
+	int rct1;
+	int rct2;
+	int cct;
+	double cb;
+	double eps;
+	double lct;
+
+public:
+	Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
+	void optimal();
+	void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
+	void printOptions();
+	double LookUpTable_exp(int literal);
+	double LookUpTable_poly(int literal);
+	double func_exp(int literal);
+	double func_poly(int literal);
+	double (Process::*lookUp)(int)  = NULL;
+	void initLookUpTable_exp(void);
+	void initLookUpTable_poly(void);
+	void search_prob();
+	int getFlipLiteral(int cIndex);
+	void flip(int literal);
+	void biasAssignment();
+	void randomBiasAssignment();
+	void randomAssignment();
+	void setAssignment();
+	void printAssignment();
+	void printUnsatCs();
+	void printNumP();
+	void test();
+	void testLine(string line);
+	void debugAssign();
+	int computeBreakScore(int literal);
+};
 #endif /* MAIN_H_ */
