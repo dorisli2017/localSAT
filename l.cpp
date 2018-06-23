@@ -12,17 +12,6 @@ int main(int argc, char *argv[]){
 	readFile(fileName);
 	ParameterProcessor params= ParameterProcessor();
 	params.init(argc,argv);
-
-	/*maxFlips =setI[0];
-	maxSteps = setI[1];
-	fct= setI[2];
-	ict = setI[3];
-	rct1 = setI[4];
-	rct2 = setI[5];
-	cct= setI[6];
-	cb=setD[0];
-	eps= setD[1];
-	lct = setD[2];*/
 	// set seed
 	seed = params.getIntParam("seed", 0);
 	srand(seed);
@@ -40,7 +29,7 @@ int main(int argc, char *argv[]){
 
 	Process process = Process(setB, setI,setD);
 	//debugProblem();
-	process.printOptions();
+	//process.printOptions();
 	//process.debugAssign();
 	process.optimal();
 }
