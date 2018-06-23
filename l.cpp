@@ -11,9 +11,9 @@ int main(int argc, char *argv[]){
 	fileName = argv[1];
 	readFile(fileName);
 	// set seed
-	seed = 5;
+	seed = 0;
 	srand(seed);
-	const vector<bool> setB= {false};
+	const vector<bool> setB= {true};
 	const vector<int> setI= {1,INT_MAX,2,1,100,0,50};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
