@@ -10,15 +10,37 @@
 int main(int argc, char *argv[]){
 	fileName = argv[1];
 	readFile(fileName);
+	ParameterProcessor params= ParameterProcessor();
+	params.init(argc,argv);
+
+	/*maxFlips =setI[0];
+	maxSteps = setI[1];
+	fct= setI[2];
+	ict = setI[3];
+	rct1 = setI[4];
+	rct2 = setI[5];
+	cct= setI[6];
+	cb=setD[0];
+	eps= setD[1];
+	lct = setD[2];*/
 	// set seed
-	seed = 0;
+	seed = params.getIntParam("seed", 0);
 	srand(seed);
-	const vector<bool> setB= {true};
-	const vector<int> setI= {1,INT_MAX,2,1,100,0,50};
-	const vector<double> setD = {3.6, 1.0,0.5};
+	const vector<bool> setB= {params.isSet("tabu_flag")};
+	const vector<int> setI= {params.getIntParam("maxFlips", 1),
+							 params.getIntParam("maxSteps",INT_MAX),
+							 params.getIntParam("fct",2),
+							 params.getIntParam("ict",1),
+							 params.getIntParam("rct1",100),
+							params.getIntParam("rct2",0),
+							params.getIntParam("cct",50)};
+	const vector<double> setD = {params.getDoubleParam("cb",3.6),
+								 params.getDoubleParam("eps",1.0),
+								 params.getDoubleParam("lct",0.5)};
+
 	Process process = Process(setB, setI,setD);
 	//debugProblem();
-	//process.printOptions();
+	process.printOptions();
 	//process.debugAssign();
 	process.optimal();
 }
@@ -562,3 +584,82 @@ double Process::LookUpTable_exp(int bre){
 double Process::LookUpTable_poly(int bre){
 	return pow((eps+bre),-cb);
 };
+
+// parameter parser
+ParameterProcessor::ParameterProcessor() {
+}
+void ParameterProcessor::init(int argc, char** argv) {
+	for (int i = 1; i < argc; i++) {
+		char* arg = argv[i];
+		if (arg[0] != '-') {
+			continue;
+		}
+		char* eq = strchr(arg, '=');
+		if (eq == NULL) {
+			params[arg+1];
+		}
+		else {
+			*eq = 0;
+			char* left = arg+1;
+			char* right = eq+1;
+			params[left] = right;
+		}
+	}
+}
+void ParameterProcessor::init(string line){
+	char* str = strdup(line.c_str());
+    const char s[2] = " ";
+    char* pch =strtok(str, s);
+    int argc = 1;
+    char* argv[10];
+    while(pch !=NULL){
+    	argv[argc]=pch;
+    	argc++;
+    pch =strtok(NULL, s);
+    }
+   	init(argc,argv);
+}
+// print parameters in a line
+void ParameterProcessor::printParams() {
+	for (map<string,string>::iterator it = params.begin(); it != params.end(); it++) {
+		if (it->second.empty()) {
+			cout << it->first<< ",";
+		}
+		else {
+					cout << it->first << "=" << it->second << ",";
+		}
+	}
+}
+
+// return true if the parameter is specified by the user.
+bool ParameterProcessor::isSet(const string& name) {
+	return params.find(name) != params.end();
+}
+
+//get the parameter value(or return default value)
+const string& ParameterProcessor::getStringParam(const string& name, const string& defaultValue) {
+	if (isSet(name)) {
+		return params[name];
+	}
+	else {
+		return defaultValue;
+	}
+}
+// get the integer parameter value (or return default value)
+int ParameterProcessor::getIntParam(const string& name, int defaultValue) {
+	if (isSet(name)) {
+		return atoi(params[name].c_str());
+	}
+	else {
+		return defaultValue;
+	}
+}
+
+double  ParameterProcessor::getDoubleParam(const string& name, double defaultValue) {
+	if (isSet(name)) {
+		return atof(params[name].c_str());
+	}
+	else {
+		return defaultValue;
+	}
+}

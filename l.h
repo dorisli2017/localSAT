@@ -11,6 +11,7 @@
 /* includes*/
 
 #include <iostream>
+#include <map>
 #include <climits>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,5 +110,20 @@ public:
 	void testLine(string line);
 	void debugAssign();
 	int computeBreakScore(int literal);
+};
+
+//parameter parser
+class ParameterProcessor{
+private:
+	map<string, string> params;
+public:
+	ParameterProcessor();
+    void init(int argc, char** argv);
+    void init(string argv);
+	void printParams();
+	bool isSet(const string& name);
+	const string& getStringParam(const string& name, const string& defaultValue);
+	int getIntParam(const string& name, int defaultValue);
+	double getDoubleParam(const string& name, double defaultValue);
 };
 #endif /* MAIN_H_ */
