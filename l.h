@@ -124,6 +124,7 @@ public:
 	bool isSet(const string& name);
 	const string& getStringParam(const string& name, const string& defaultValue);
 	int getIntParam(const string& name, int defaultValue);
+	bool getboolParam(const string& name, bool defaultValue);
 	double getDoubleParam(const string& name, double defaultValue);
 };
 #endif /* MAIN_H_ */

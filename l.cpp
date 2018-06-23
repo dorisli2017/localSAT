@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 	// set seed
 	seed = params.getIntParam("seed", 0);
 	srand(seed);
-	const vector<bool> setB= {params.isSet("tabu_flag")};
+	const vector<bool> setB= {params.getboolParam("tabu_flag",0)};
 	const vector<int> setI= {params.getIntParam("maxFlips", 1),
 							 params.getIntParam("maxSteps",INT_MAX),
 							 params.getIntParam("fct",2),
@@ -636,6 +636,16 @@ const string& ParameterProcessor::getStringParam(const string& name, const strin
 }
 // get the integer parameter value (or return default value)
 int ParameterProcessor::getIntParam(const string& name, int defaultValue) {
+	if (isSet(name)) {
+		return atoi(params[name].c_str());
+	}
+	else {
+		return defaultValue;
+	}
+}
+
+// get the integer parameter value (or return default value)
+bool ParameterProcessor::getboolParam(const string& name, bool defaultValue) {
 	if (isSet(name)) {
 		return atoi(params[name].c_str());
 	}
