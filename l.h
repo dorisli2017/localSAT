@@ -40,7 +40,8 @@ int* negOc;
 int maxOcc;
 vector<int> clauseT;
 bool sat = false;
-
+//global settings
+int seed;
 
 /*methods*/
 
@@ -68,13 +69,11 @@ class Process{
 
 	/*settings*/
 	bool tabu_flag;
-	bool seed_flag;
 	/*option values*/
 
 
 	int maxFlips;
 	int maxSteps;
-	int seed;
 	int fct;
 	int ict;
 	int rct1;

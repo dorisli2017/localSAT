@@ -10,11 +10,15 @@
 int main(int argc, char *argv[]){
 	fileName = argv[1];
 	readFile(fileName);
-	const vector<bool> setB= {false, false};
-	const vector<int> setI= {1,INT_MAX,0,2,1,100,0,50};
+	// set seed
+	seed = 5;
+	srand(seed);
+	const vector<bool> setB= {false};
+	const vector<int> setI= {1,INT_MAX,2,1,100,0,50};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
 	//debugProblem();
+	//process.printOptions();
 	//process.debugAssign();
 	process.optimal();
 }
@@ -40,10 +44,6 @@ void Process::debugAssign(){
 Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
 	parseOptions(setB, setI,setD);
 	//set the parameters
-		// set seed
-	if(seed_flag)srand(seed);
-	else srand (0);
-	//else srand (time(NULL));
 	   // set tabuS
 	if(tabu_flag){
 		tabuS = (int*) malloc(sizeof(int) * numVs);
@@ -77,16 +77,14 @@ Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<
  */
 void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
 	tabu_flag = setB[0];
-	seed_flag = setB[1];
 
 	maxFlips =setI[0];
 	maxSteps = setI[1];
-	seed = setI[2];
-	fct= setI[3];
-	ict = setI[4];
-	rct1 = setI[5];
-	rct2 = setI[6];
-	cct= setI[7];
+	fct= setI[2];
+	ict = setI[3];
+	rct1 = setI[4];
+	rct2 = setI[5];
+	cct= setI[6];
 	cb=setD[0];
 	eps= setD[1];
 	lct = setD[2];
@@ -182,7 +180,6 @@ void parseLine(string line,int indexC){
 void Process::printOptions(){
 	printf("localSAT options: \n");
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
-	cout<<"c seed_flag: "<<seed_flag<<endl;
 	cout<<"c maxFlips: "<<maxFlips<<endl;
 	cout<<"c maxSteps: "<<maxSteps<<endl;
 	cout<<"c seed: "<<seed<<endl;
@@ -209,7 +206,6 @@ void Process::printOptions(){
 		break;
 		   }
 	}
-	cout<<"c seed: "<<seed<<endl;
 }
 void printVariables(){
 	cout<< "Variables "<< ": " <<endl ;
