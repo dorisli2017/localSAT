@@ -8,8 +8,8 @@
 #include "l.h"
 
 int main(int argc, char *argv[]){
-	//fileName = argv[1];
-	//readFile(fileName);
+	fileName = argv[1];
+	readFile(fileName);
 	const vector<bool> setB= {true};
 	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,0};
 	const vector<double> setD = {3.6, 1.0,0.5};
