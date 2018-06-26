@@ -14,11 +14,11 @@ int main(int argc, char *argv[]){
 	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,0};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
-	randTest();
+	//randTest();
 	//debugProblem();
 	//process.printOptions();
 	//process.debugAssign();
-	//process.optimal();
+	process.optimal();
 }
 void debugProblem(){
 	printVariables();
