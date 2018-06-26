@@ -8,19 +8,17 @@
 #include "l.h"
 
 int main(int argc, char *argv[]){
-	fileName = argv[1];
-	readFile(fileName);
-	// set seed
-	seed = 0;
-	srand(seed);
+	//fileName = argv[1];
+	//readFile(fileName);
 	const vector<bool> setB= {true};
-	const vector<int> setI= {1,INT_MAX,2,1,100,0,50};
+	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,0};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
+	randTest();
 	//debugProblem();
 	//process.printOptions();
 	//process.debugAssign();
-	process.optimal();
+	//process.optimal();
 }
 void debugProblem(){
 	printVariables();
@@ -55,6 +53,23 @@ Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<
 	numP = (int*) malloc(sizeof(int) * numCs);
 	probs = (double*)malloc(sizeof(double) * numVs);
 	assign = (bool*)malloc(sizeof(bool) * numVs);
+	switch(generator){
+	case 0:{
+		srand(seed);
+		randINT = rand;
+		break;
+		}
+	case 1:{
+		m_rand.seed(seed);
+		randINT = min_rand;
+		break;
+	}
+	default:{
+		gen.seed(seed);
+		randINT = mt_rand;
+		break;
+	}
+	}
 	//set inititial assignment
 	switch(ict){
 	case 0:randomAssignment();break;
@@ -85,6 +100,8 @@ void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,con
 	rct1 = setI[4];
 	rct2 = setI[5];
 	cct= setI[6];
+	generator = setI[7];
+	seed = setI[8];
 	cb=setD[0];
 	eps= setD[1];
 	lct = setD[2];
@@ -191,6 +208,19 @@ void Process::printOptions(){
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	cout<<"c lct: "<<lct<<endl;
+	switch(generator){
+	case 0:{
+		cout<<"c rand() generator with seed " <<seed <<endl;
+		break;
+		}
+	case 1:{
+		cout<<"c minstd_rand() generator with seed " <<seed <<endl;
+		break;
+		}
+	default:{
+		cout<<"c mersenne_twister_rand() generator with seed " <<seed <<endl;
+	}
+	}
 	switch(fct){
 	case 0:{
 		cout<<"c polynomial function"<<endl;
@@ -281,14 +311,14 @@ void Process::randomBiasAssignment(){
 			assign[i] = true;
 		}
 		else{
-			assign[i] = (rand()%sum)<posOc[i];
+			assign[i] = (randINT()%sum)<posOc[i];
 		}
 	}
 	setAssignment();
 }
 void Process::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
-   		assign[j] = (rand()%2 ==1);
+   		assign[j] = (randINT()%2 ==1);
    	}
     setAssignment();
 }
@@ -298,7 +328,7 @@ void Process::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-	if( tabu_flag && rand()%100<cct){
+	if( tabu_flag && randINT()%100<cct){
 		for(int i = 0; i < numVs; i++){
 			tabuS[i] =0;
 		}
@@ -339,7 +369,7 @@ void Process::optimal(){
 			}
 			if(sat) return;
 		}
-		rct = rand()%100;
+		rct = randINT()%100;
 		if(rct < rct1) randomAssignment();
 		else{
 			if(rct< rct2) biasAssignment();
@@ -368,7 +398,7 @@ int Process::getFlipLiteral(int cIndex){
 		probs[j]= sum;
 		j++;
 	}
-	randD = ((double)rand()/RAND_MAX)*sum;
+	randD = ((double)randINT()/RAND_MAX)*sum;
 	assert(randD >= 0);
 	for(int i = 0; i < j;i++){
 		if(probs[i]< randD){
@@ -481,7 +511,7 @@ double Process::func_poly(int literal){
 }
 
 void Process::search_prob(){
-	int randC = rand()%unsatCs.size();
+	int randC = randINT()%unsatCs.size();
 	int flipCindex = unsatCs[randC];
 	if(numP[flipCindex] > 0){
 		unsatCs[randC]=unsatCs.back();
@@ -562,3 +592,28 @@ double Process::LookUpTable_exp(int bre){
 double Process::LookUpTable_poly(int bre){
 	return pow((eps+bre),-cb);
 };
+
+int min_rand(){
+	return m_rand();
+}
+int mt_rand(){
+	return dis(gen);
+}
+ void randTest(){
+	 int con [8][8];
+	 for(int i = 0; i < 8; i++){
+	 	for(int j = 0; j < 8; j++){
+	 		con[i][j] = randINT();
+	 	}
+	 	cout<< endl;
+	 }
+	 for(int i = 0; i < 8; i++){
+	 	for(int j = 0; j < 8; j++){
+	 		cout<< con[i][j] << " ";
+	 	}
+	 	cout<< endl;
+	 }
+ }
+
+
+

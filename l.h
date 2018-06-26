@@ -25,6 +25,8 @@
 #include<iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <random>
+#include <functional>
 using namespace std;
 
 /*problem and assignment*/
@@ -42,7 +44,10 @@ vector<int> clauseT;
 bool sat = false;
 //global settings
 int seed;
-
+int generator;
+minstd_rand m_rand;
+uniform_int_distribution<int> dis(0,INT_MAX);
+mt19937 gen;
 /*methods*/
 
 void readFile(const char* fileName);
@@ -56,6 +61,10 @@ int getFlipCandidate_wa(int cIndex);
 int getFlipCandidate_max(int cIndex);
 void printVector(vector<int>& vec);
 void printUsage();
+int (*randINT)(void);
+int min_rand();
+int mt_rand();
+void randTest();
 
 
 class Process{
