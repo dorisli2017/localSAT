@@ -10,8 +10,9 @@
 int main(int argc, char *argv[]){
 	fileName = argv[1];
 	readFile(fileName);
-	const vector<bool> setB= {true};
-	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,0};
+	const vector<bool> setB= {false};
+// maxFlips, maxSteps,fct,ict,rct1,rct2,cct,gen,seed
+	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,1};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	Process process = Process(setB, setI,setD);
 	//randTest();
