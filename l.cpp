@@ -14,12 +14,62 @@ int main(int argc, char *argv[]){
 // maxFlips, maxSteps,fct,ict,rct1,rct2,cct,gen,seed
 	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,2,1};
 	const vector<double> setD = {3.6, 1.0,0.5};
-	Process process = Process(setB, setI,setD);
+	switch(setI[7]){
+	case 0:{
+		Process<minstd_rand0> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 1:{
+		Process<minstd_rand> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 2:{
+		Process<mt19937> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 3:{
+		Process<mt19937_64> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 4:{
+		Process<ranlux24_base> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 5:{
+		Process<ranlux48_base> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 6:{
+		Process<ranlux24> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 7:{
+		Process<ranlux48> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 8:{
+		Process<knuth_b> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	case 9:{
+		Process<default_random_engine> process (setB, setI,setD);
+		process.optimal();
+		break;
+	}
+	}
 	//randTest();
 	//debugProblem();
 	//process.printOptions();
 	//process.debugAssign();
-	process.optimal();
 }
 void debugProblem(){
 	printVariables();
@@ -29,7 +79,8 @@ void debugProblem(){
 		cout<< i<< ":"<<posOc[i]<< " "<<negOc[i]<< endl;
 	}
 }
-void Process::debugAssign(){
+template<class T>
+void Process<T>::debugAssign(){
 	/* Testing code**********************************/
 		printOptions();
 	   	printAssignment();
@@ -40,10 +91,12 @@ void Process::debugAssign(){
 	/*Testing code**********************************/
 
 }
-Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
+template<class T>
+Process<T>::Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
 	parseOptions(setB, setI,setD);
 	//set the parameters
 	   // set tabuS
+	generator.seed(seed);
 	if(tabu_flag){
 		tabuS = (int*) malloc(sizeof(int) * numVs);
 		for(int i = 0; i < numVs; i++){
@@ -54,23 +107,6 @@ Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<
 	numP = (int*) malloc(sizeof(int) * numCs);
 	probs = (double*)malloc(sizeof(double) * numVs);
 	assign = (bool*)malloc(sizeof(bool) * numVs);
-	switch(generator){
-	case 0:{
-		srand(seed);
-		randINT = rand;
-		break;
-		}
-	case 1:{
-		m_rand.seed(seed);
-		randINT = min_rand;
-		break;
-	}
-	default:{
-		gen.seed(seed);
-		randINT = mt_rand;
-		break;
-	}
-	}
 	//set inititial assignment
 	switch(ict){
 	case 0:randomAssignment();break;
@@ -91,7 +127,8 @@ Process::Process(const vector<bool>& setB, const vector<int>& setI,const vector<
 /*parse the argument (including options and filename)
  *using getopt_long to allow GNU-style long options as well as single-character options
  */
-void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
+template<class T>
+void Process<T>::parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
 	tabu_flag = setB[0];
 
 	maxFlips =setI[0];
@@ -101,7 +138,6 @@ void Process::parseOptions(const vector<bool>& setB, const vector<int>& setI,con
 	rct1 = setI[4];
 	rct2 = setI[5];
 	cct= setI[6];
-	generator = setI[7];
 	seed = setI[8];
 	cb=setD[0];
 	eps= setD[1];
@@ -195,7 +231,8 @@ void parseLine(string line,int indexC){
 	perror("a clause line does not terminates");
 	exit(EXIT_FAILURE);
 }
-void Process::printOptions(){
+template<class T>
+void Process<T>::printOptions(){
 	printf("localSAT options: \n");
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
 	cout<<"c maxFlips: "<<maxFlips<<endl;
@@ -253,7 +290,8 @@ void printClauses(){
    		printVector(clauses[i]);
    	}
 }
-void Process::printAssignment(){
+template<class T>
+void Process<T>::printAssignment(){
 	cout<< "v ";
 	for(int i = 1; i < numVs; i++){
 		if(assign[i]) cout <<i<<" ";
@@ -261,12 +299,14 @@ void Process::printAssignment(){
 	}
 	cout <<endl ;
 }
-void Process::printUnsatCs(){
+template<class T>
+void Process<T>::printUnsatCs(){
 	cout<< "Unsatisfied clauses ";
 	printVector(unsatCs);
 	cout <<endl ;
 }
-void Process::printNumP(){
+template<class T>
+void Process<T>::printNumP(){
 	cout<< "numP: ";
 	for(int i = 0; i < numCs; i++){
 		cout << numP[i]<< " ";
@@ -291,8 +331,8 @@ void initialAssignment(){
 		}
 	}
 }
-
-void Process::biasAssignment(){
+template<class T>
+void Process<T>::biasAssignment(){
 	for(int i = 0; i < numVs; i++){
 			if(posOc[i] > negOc[i]){
 				assign[i] = true;
@@ -303,8 +343,8 @@ void Process::biasAssignment(){
 	}
 	setAssignment();
 }
-
-void Process::randomBiasAssignment(){
+template<class T>
+void Process<T>::randomBiasAssignment(){
 	int sum;
 	for(int i = 0; i < numVs; i++){
 		sum = posOc[i] +negOc[i];
@@ -312,24 +352,25 @@ void Process::randomBiasAssignment(){
 			assign[i] = true;
 		}
 		else{
-			assign[i] = (randINT()%sum)<posOc[i];
+			assign[i] = (distribution(generator)%sum)<posOc[i];
 		}
 	}
 	setAssignment();
 }
-void Process::randomAssignment(){
+template<class T>
+void Process<T>::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
-   		assign[j] = (randINT()%2 ==1);
+   		assign[j] = (distribution(generator)%2 ==1);
    	}
     setAssignment();
 }
 
-
-void Process::setAssignment(){
+template<class T>
+void Process<T>::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-	if( tabu_flag && randINT()%100<cct){
+	if( tabu_flag && distribution(generator)%100<cct){
 		for(int i = 0; i < numVs; i++){
 			tabuS[i] =0;
 		}
@@ -353,7 +394,8 @@ void Process::setAssignment(){
    	}
 }
 
-void Process::optimal(){
+template<class T>
+void Process<T>::optimal(){
 	int rct;
 	while(true){
 		for(unsigned int i = 0; i < maxFlips; i++){
@@ -370,7 +412,7 @@ void Process::optimal(){
 			}
 			if(sat) return;
 		}
-		rct = randINT()%100;
+		rct = distribution(generator)%100;
 		if(rct < rct1) randomAssignment();
 		else{
 			if(rct< rct2) biasAssignment();
@@ -378,7 +420,8 @@ void Process::optimal(){
 		}
 	}
 }
-int Process::getFlipLiteral(int cIndex){
+template<class T>
+int Process<T>::getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre,min= numCs+1;
 	double sum=0,randD;
@@ -399,7 +442,7 @@ int Process::getFlipLiteral(int cIndex){
 		probs[j]= sum;
 		j++;
 	}
-	randD = ((double)randINT()/RAND_MAX)*sum;
+	randD = ((double)distribution(generator)/RAND_MAX)*sum;
 	assert(randD >= 0);
 	for(int i = 0; i < j;i++){
 		if(probs[i]< randD){
@@ -413,7 +456,8 @@ int Process::getFlipLiteral(int cIndex){
 	}
 	return randomLiteral;
 }
-void Process::flip(int literal){
+template<class T>
+void Process<T>::flip(int literal){
 	std::vector<int>::const_iterator i;
 	if(literal > 0){
    		for (i = negC[literal].begin(); i != negC[literal].end(); ++i){
@@ -437,7 +481,8 @@ void Process::flip(int literal){
 		assign[-literal]= false;
 	}
 }
-void Process::test(){
+template<class T>
+void Process<T>::test(){
 	ifstream fp;
 	fp.open(fileName,std::ios::in);
 	if(!fp.is_open()){
@@ -462,8 +507,8 @@ void Process::test(){
    	}
    	cout<< "tested" << endl;
 }
-
-void Process::testLine(string line){
+template<class T>
+void Process<T>::testLine(string line){
 	char* str = strdup(line.c_str());
     const char s[2] = " ";
     int lit;
@@ -491,7 +536,8 @@ void Process::testLine(string line){
 	exit(EXIT_FAILURE);
 
 }
-int Process::computeBreakScore(int literal){
+template<class T>
+int Process<T>::computeBreakScore(int literal){
     int score = 0;
     int aIndex = abs(literal);
     vector<int>& occList =(literal < 0)? posC[aIndex] :negC[aIndex];
@@ -503,16 +549,17 @@ int Process::computeBreakScore(int literal){
 	//cout<< "out make "<<endl;
     return score;
 }
-
-double Process::func_exp(int literal){
+template<class T>
+double Process<T>::func_exp(int literal){
 	return pow(cb,-computeBreakScore(literal));
 }
-double Process::func_poly(int literal){
+template<class T>
+double Process<T>::func_poly(int literal){
 	return pow((eps+computeBreakScore(literal)),-cb);
 }
-
-void Process::search_prob(){
-	int randC = randINT()%unsatCs.size();
+template<class T>
+void Process<T>::search_prob(){
+	int randC = distribution(generator)%unsatCs.size();
 	int flipCindex = unsatCs[randC];
 	if(numP[flipCindex] > 0){
 		unsatCs[randC]=unsatCs.back();
@@ -571,50 +618,28 @@ void printUsage(){
 	printf("---------------------------------------------------------------------------------\n");
 }
 
-
-void Process::initLookUpTable_exp(){
+template<class T>
+void Process<T>::initLookUpTable_exp(){
 
 	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
 	for(int i = 0; i < maxLOcc;i++){
 		lookUpTable[i] = pow(cb,-i);
 	}
 }
-
-void Process::initLookUpTable_poly(){
+template<class T>
+void Process<T>::initLookUpTable_poly(){
 	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
 	for(int i = 0; i < maxLOcc;i++){
 		lookUpTable[i] = pow((eps+i),-cb);
 	}
 }
-
-double Process::LookUpTable_exp(int bre){
+template<class T>
+double Process<T>::LookUpTable_exp(int bre){
 	return pow(cb,-bre);
 };
-double Process::LookUpTable_poly(int bre){
+template<class T>
+double Process<T>::LookUpTable_poly(int bre){
 	return pow((eps+bre),-cb);
 };
-
-int min_rand(){
-	return m_rand();
-}
-int mt_rand(){
-	return dis(gen);
-}
- void randTest(){
-	 int con [8][8];
-	 for(int i = 0; i < 8; i++){
-	 	for(int j = 0; j < 8; j++){
-	 		con[i][j] = randINT();
-	 	}
-	 	cout<< endl;
-	 }
-	 for(int i = 0; i < 8; i++){
-	 	for(int j = 0; j < 8; j++){
-	 		cout<< con[i][j] << " ";
-	 	}
-	 	cout<< endl;
-	 }
- }
-
 
 
