@@ -1,4 +1,4 @@
 all:
-	g++ -O3 l.cpp -std=c++11 -o t0888
+	g++ -O3 l.cpp -std=c++11 -o l
 clean:
 	rm l

@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 		process.optimal();
 		break;
 	}
-	case 9:{
+	default:{
 		Process<default_random_engine> process (setB, setI,setD);
 		process.optimal();
 		break;
@@ -96,7 +96,14 @@ Process<T>::Process(const vector<bool>& setB, const vector<int>& setI,const vect
 	parseOptions(setB, setI,setD);
 	//set the parameters
 	   // set tabuS
-	generator.seed(seed);
+	if(setI[7] == 10){
+		srand(seed);
+		randINT = &Process::randI2;
+	}
+	else {
+		randINT = &Process::randI;
+		generator.seed(seed);
+	}
 	if(tabu_flag){
 		tabuS = (int*) malloc(sizeof(int) * numVs);
 		for(int i = 0; i < numVs; i++){
@@ -352,7 +359,7 @@ void Process<T>::randomBiasAssignment(){
 			assign[i] = true;
 		}
 		else{
-			assign[i] = (distribution(generator)%sum)<posOc[i];
+			assign[i] = ((this->*randINT)()%sum)<posOc[i];
 		}
 	}
 	setAssignment();
@@ -360,7 +367,7 @@ void Process<T>::randomBiasAssignment(){
 template<class T>
 void Process<T>::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
-   		assign[j] = (distribution(generator)%2 ==1);
+   		assign[j] = ((this->*randINT)()%2 ==1);
    	}
     setAssignment();
 }
@@ -370,7 +377,7 @@ void Process<T>::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-	if( tabu_flag && distribution(generator)%100<cct){
+	if( tabu_flag && (this->*randINT)()%100<cct){
 		for(int i = 0; i < numVs; i++){
 			tabuS[i] =0;
 		}
@@ -412,7 +419,7 @@ void Process<T>::optimal(){
 			}
 			if(sat) return;
 		}
-		rct = distribution(generator)%100;
+		rct = (this->*randINT)()%100;
 		if(rct < rct1) randomAssignment();
 		else{
 			if(rct< rct2) biasAssignment();
@@ -442,7 +449,7 @@ int Process<T>::getFlipLiteral(int cIndex){
 		probs[j]= sum;
 		j++;
 	}
-	randD = ((double)distribution(generator)/RAND_MAX)*sum;
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
 	assert(randD >= 0);
 	for(int i = 0; i < j;i++){
 		if(probs[i]< randD){
@@ -559,7 +566,7 @@ double Process<T>::func_poly(int literal){
 }
 template<class T>
 void Process<T>::search_prob(){
-	int randC = distribution(generator)%unsatCs.size();
+	int randC = (this->*randINT)()%unsatCs.size();
 	int flipCindex = unsatCs[randC];
 	if(numP[flipCindex] > 0){
 		unsatCs[randC]=unsatCs.back();
@@ -641,5 +648,13 @@ template<class T>
 double Process<T>::LookUpTable_poly(int bre){
 	return pow((eps+bre),-cb);
 };
+template<class T>
+int Process<T>::randI(){
+	return distribution(generator);
+};
 
+template<class T>
+int Process<T>::randI2(){
+	return rand();
+};
 

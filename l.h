@@ -111,5 +111,8 @@ public:
 	void testLine(string line);
 	void debugAssign();
 	int computeBreakScore(int literal);
+	int (Process::*randINT)(void) = NULL;
+	int randI();
+	int randI2();
 };
 #endif /* MAIN_H_ */
