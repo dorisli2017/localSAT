@@ -42,8 +42,6 @@ int* negOc;
 int maxOcc;
 vector<int> clauseT;
 bool sat = false;
-//global settings
-int seed;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
 
@@ -61,6 +59,7 @@ void printUsage();
 
 template<class T>
 class Process{
+	int seed;
 	int* numP;
 	vector<int> unsatCs;
 	double* probs;
