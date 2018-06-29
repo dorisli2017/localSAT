@@ -12,7 +12,7 @@ int main(int argc, char *argv[]){
 	readFile(fileName);
 	const vector<bool> setB= {true};
 // maxFlips, maxSteps,fct,ict,rct1,rct2,cct,gen,seed
-	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,0,888};
+	const vector<int> setI= {1,INT_MAX,2,1,100,0,50,10,0};
 	const vector<double> setD = {3.6, 1.0,0.5};
 	switch(setI[7]){
 	case 0:{
