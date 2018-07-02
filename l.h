@@ -2,16 +2,15 @@
  * main.h
  *
  *  Created on: May 8, 2018
- *      Author: Guangp 
+ *      Author: Guang
  */
 
 #ifndef MAIN_H_
 #define MAIN_H_
 
 /* includes*/
-
-#include <iostream>
 #include <map>
+#include <iostream>
 #include <climits>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +25,15 @@
 #include<iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <random>
+#include <functional>
 using namespace std;
+
+const vector<vector<bool>> setBB= {{false},{false}};
+// maxFlips, maxSteps,fct,ict,rct1,rct2,cct,gen,seed
+const vector<vector<int>> setII= {{INT_MAX,1,2,1,100,0,50,10,0}, {INT_MAX,1,2,1,100,0,50,1,0}};
+const vector<vector<double>> setDD = {{3.6, 1.0,0.5},{3.6, 1.0,0.5}};
+
 
 /*problem and assignment*/
 char* fileName;
@@ -41,9 +48,7 @@ int* negOc;
 int maxOcc;
 vector<int> clauseT;
 bool sat = false;
-//global settings
-int seed;
-
+uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
 
 void readFile(const char* fileName);
@@ -58,7 +63,7 @@ int getFlipCandidate_max(int cIndex);
 void printVector(vector<int>& vec);
 void printUsage();
 
-
+template<class T>
 class Process{
 	int* numP;
 	vector<int> unsatCs;
@@ -67,6 +72,7 @@ class Process{
 	double* lookUpTable;
 	int* tabuS;
 	int maxLOcc;
+	T generator;
 
 	/*settings*/
 	bool tabu_flag;
@@ -74,7 +80,6 @@ class Process{
 
 
 	int maxFlips;
-	int maxSteps;
 	int fct;
 	int ict;
 	int rct1;
@@ -110,6 +115,9 @@ public:
 	void testLine(string line);
 	void debugAssign();
 	int computeBreakScore(int literal);
+	int (Process::*randINT)(void) = NULL;
+	int randI();
+	int randI2();
 };
 
 //parameter parser
