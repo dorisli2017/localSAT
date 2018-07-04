@@ -14,15 +14,15 @@ int main(int argc, char *argv[]){
 	params.init(argc,argv);
 	const vector<bool> setB= {params.getboolParam("tabu_flag",0)};
 	const vector<int> setI= {params.getIntParam("maxFlips", INT_MAX),
-							 params.getIntParam("fct",2),
+							 params.getIntParam("fct",1),
 							 params.getIntParam("ict",1),
-							 params.getIntParam("rct1",100),
-							params.getIntParam("rct2",0),
-							params.getIntParam("cct",50),
-							params.getIntParam("gct",0)};
-	const vector<double> setD = {params.getDoubleParam("cb",3.6),
-								 params.getDoubleParam("eps",1.0),
-								 params.getDoubleParam("lct",0.5)};
+							 params.getIntParam("rct1",50),
+							params.getIntParam("rct2",61),
+							params.getIntParam("cct",93),
+							params.getIntParam("gct",10)};
+	const vector<double> setD = {params.getDoubleParam("cb",6.0),
+								 params.getDoubleParam("eps",4.6),
+								 params.getDoubleParam("lct",3.4)};
 
 	switch(setI[6]){
 		case 0:{
