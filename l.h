@@ -41,7 +41,6 @@ int* posOc;
 int* negOc;
 int maxOcc;
 vector<int> clauseT;
-bool sat = false;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
 
@@ -75,7 +74,6 @@ class Process{
 
 
 	int maxFlips;
-	int maxSteps;
 	int fct;
 	int ict;
 	int rct1;
