@@ -96,7 +96,7 @@ Process<T>::Process(const vector<bool>& setB, const vector<int>& setI,const vect
 	parseOptions(setB, setI,setD);
 	//set the parameters
 	   // set tabuS
-	if(setI[7] == 10){
+	if(setI[6] == 10){
 		srand(seed);
 		randINT = &Process::randI2;
 	}
@@ -406,6 +406,7 @@ void Process<T>::optimal(){
 		for(unsigned int i = 0; i < maxFlips; i++){
 			if (unsatCs.size()== 0){
 				cout<< "s SATISFIABLE"<< endl;
+				printf("flips : %llu", flipCount);
 				return;
 			}
 			search_prob();
@@ -456,6 +457,7 @@ int Process<T>::getFlipLiteral(int cIndex){
 }
 template<class T>
 void Process<T>::flip(int literal){
+	flipCount++;
 	std::vector<int>::const_iterator i;
 	if(literal > 0){
    		for (i = negC[literal].begin(); i != negC[literal].end(); ++i){

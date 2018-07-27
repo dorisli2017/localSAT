@@ -30,6 +30,7 @@
 using namespace std;
 
 /*problem and assignment*/
+long long int flipCount = 0;
 char* fileName;
 int numCs;
 int numVs;
