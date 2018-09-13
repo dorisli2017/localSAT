@@ -9,59 +9,56 @@
 
 int main(int argc, char *argv[]){
 	fileName = argv[1];
+	seed = atoi(argv[2]);
 	readFile(fileName);
-	const vector<bool> setB= {false};
-// maxFlips, maxSteps,fct,ict,rct1,rct2,cct,gen,seed
-	const vector<int> setI= {INT_MAX,2,1,100,0,50,10,0};
-	const vector<double> setD = {3.6, 1.0,0.5};
-	switch(setI[6]){
+	switch(mrq){
 	case 0:{
-		Process<minstd_rand0> process (setB, setI,setD);
+		Process<minstd_rand0> process;
 		process.optimal();
 		break;
 	}
 	case 1:{
-		Process<minstd_rand> process (setB, setI,setD);
+		Process<minstd_rand> process;
 		process.optimal();
 		break;
 	}
 	case 2:{
-		Process<mt19937> process (setB, setI,setD);
+		Process<mt19937> process;
 		process.optimal();
 		break;
 	}
 	case 3:{
-		Process<mt19937_64> process (setB, setI,setD);
+		Process<mt19937_64> process;
 		process.optimal();
 		break;
 	}
 	case 4:{
-		Process<ranlux24_base> process (setB, setI,setD);
+		Process<ranlux24_base> process;
 		process.optimal();
 		break;
 	}
 	case 5:{
-		Process<ranlux48_base> process (setB, setI,setD);
+		Process<ranlux48_base> process;
 		process.optimal();
 		break;
 	}
 	case 6:{
-		Process<ranlux24> process (setB, setI,setD);
+		Process<ranlux24> process;
 		process.optimal();
 		break;
 	}
 	case 7:{
-		Process<ranlux48> process (setB, setI,setD);
+		Process<ranlux48> process;
 		process.optimal();
 		break;
 	}
 	case 8:{
-		Process<knuth_b> process (setB, setI,setD);
+		Process<knuth_b> process;
 		process.optimal();
 		break;
 	}
 	default:{
-		Process<default_random_engine> process (setB, setI,setD);
+		Process<default_random_engine> process;
 		process.optimal();
 		break;
 	}
@@ -92,11 +89,10 @@ void Process<T>::debugAssign(){
 
 }
 template<class T>
-Process<T>::Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
-	parseOptions(setB, setI,setD);
+Process<T>::Process(){
 	//set the parameters
 	   // set tabuS
-	if(setI[6] == 10){
+	if(mrq == 10){
 		srand(seed);
 		randINT = &Process::randI2;
 	}
@@ -134,21 +130,6 @@ Process<T>::Process(const vector<bool>& setB, const vector<int>& setI,const vect
 /*parse the argument (including options and filename)
  *using getopt_long to allow GNU-style long options as well as single-character options
  */
-template<class T>
-void Process<T>::parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD){
-	tabu_flag = setB[0];
-
-	maxFlips =setI[0];
-	fct= setI[1];
-	ict = setI[2];
-	rct1 = setI[3];
-	rct2 = setI[4];
-	cct= setI[5];
-	seed = setI[7];
-	cb=setD[0];
-	eps= setD[1];
-	lct = setD[2];
-}
 // construct the Problem with fill information of the input file
 void readFile(const char* fileName){
 	//cout<< "in readFile"<<endl;
@@ -241,13 +222,9 @@ template<class T>
 void Process<T>::printOptions(){
 	printf("localSAT options: \n");
 	cout<<"c tabu_flag: "<<tabu_flag<<endl;
-	cout<<"c maxFlips: "<<maxFlips<<endl;
 	cout<<"c seed: "<<seed<<endl;
 	cout<<"c fct: "<<fct<<endl;
 	cout<<"c ict: "<<ict<<endl;
-	cout<<"c rct1: "<<rct1<<endl;
-	cout<<"c rct2: "<<rct2<<endl;
-	cout<<"c cct: "<<cct<<endl;
 	cout<<"c cb: "<<cb<<endl;
 	cout<<"c eps: "<<eps<<endl;
 	cout<<"c lct: "<<lct<<endl;
@@ -342,9 +319,7 @@ void Process<T>::biasAssignment(){
 			if(posOc[i] > negOc[i]){
 				assign[i] = true;
 			}
-			else{
-				assign[i] = false;
-			}
+			else assign[i] = false;
 	}
 	setAssignment();
 }
@@ -375,7 +350,7 @@ void Process<T>::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-	if( tabu_flag && (this->*randINT)()%100<cct){
+	if( tabu_flag){
 		for(int i = 0; i < numVs; i++){
 			tabuS[i] =0;
 		}
@@ -401,37 +376,23 @@ void Process<T>::setAssignment(){
 
 template<class T>
 void Process<T>::optimal(){
-	int rct;
 	while(true){
-		for(unsigned int i = 0; i < maxFlips; i++){
-			if (unsatCs.size()== 0){
-				cout<< "s SATISFIABLE"<< endl;
-				printf("flips : %llu", flipCount);
-				return;
-			}
-			search_prob();
+		if (unsatCs.size()== 0){
+			cout<< "s SATISFIABLE"<< endl;
+			printf("flips : %llu", flipCount);
+			return;
 		}
-		rct = (this->*randINT)()%100;
-		if(rct < rct1) randomAssignment();
-		else{
-			if(rct< rct2) biasAssignment();
-			else randomBiasAssignment();
-		}
+		search_prob();
 	}
 }
 template<class T>
 int Process<T>::getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
-	int j=0,bre,min= numCs+1;
-	double sum=0,randD;
-	int greedyLiteral = 0, randomLiteral;
+	int j=0,bre;
+	double sum=0,randD1,randD2;
+	int  randomLiteral1,randomLiteral2;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-		if(tabu_flag &&bre == 0 && tabuS[abs(*i)] == 0) return *i;
-		if(bre < min){
-			min = bre;
-			greedyLiteral = *i;
-		}
 		if(bre < maxLOcc){
 		sum+= lookUpTable[bre];
 		}
@@ -441,19 +402,45 @@ int Process<T>::getFlipLiteral(int cIndex){
 		probs[j]= sum;
 		j++;
 	}
-	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
-	assert(randD >= 0);
-	for(int i = 0; i < j;i++){
-		if(probs[i]< randD){
-			continue;
+	if(!tabu_flag){
+		randD1 = ((double)(this->*randINT)()/RAND_MAX)*sum;
+		assert(randD1 >= 0);
+		for(int i = 0; i < j;i++){
+			if(probs[i]< randD1){
+				continue;
+			}
+			randomLiteral1= vList[i];
+			break;
 		}
-		randomLiteral= vList[i];
-		break;
+		return randomLiteral1;
 	}
-	if(tabu_flag &&tabuS[abs(greedyLiteral)] < tabuS[abs(randomLiteral)]){
-		return greedyLiteral;
+	else{
+		int randD_1 = ((double)(this->*randINT)()/RAND_MAX)*sum;
+		int randD_2 = ((double)(this->*randINT)()/RAND_MAX)*sum;
+		if(randD_1<randD_2) {
+			randD1 = randD_1;
+			randD2 = randD_2;
+		}
+		else{
+			randD1 = randD_2;
+			randD2 = randD_1;
+		}
+		int i = 0;
+		for(; i < j; i++){
+			if(probs[i]< randD1) continue;
+			randomLiteral1 = vList[i];
+			break;
+		}
+		for(;i < j; i++){
+			if(probs[i]< randD2) continue;
+			randomLiteral2 = vList[i];
+			break;
+		}
+		if(tabuS[abs(randomLiteral1)] < tabuS[abs(randomLiteral2)]){
+			return randomLiteral1;
+		}
+		else return randomLiteral2;
 	}
-	return randomLiteral;
 }
 template<class T>
 void Process<T>::flip(int literal){
@@ -559,12 +546,16 @@ double Process<T>::func_poly(int literal){
 }
 template<class T>
 void Process<T>::search_prob(){
-	int randC = (this->*randINT)()%unsatCs.size();
+	int size = unsatCs.size();
+	int randC = (this->*randINT)()%size;
 	int flipCindex = unsatCs[randC];
-	if(numP[flipCindex] > 0){
+	while(numP[flipCindex] > 0){
 		unsatCs[randC]=unsatCs.back();
 		unsatCs.pop_back();
-		return;
+		size--;
+		if(size == 0) return;
+		randC = (this->*randINT)()%size;
+		flipCindex = unsatCs[randC];
 	}
 	int flipLindex = getFlipLiteral(flipCindex);
 	unsatCs[randC]=unsatCs.back();

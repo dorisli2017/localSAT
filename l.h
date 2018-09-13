@@ -41,6 +41,14 @@ vector<int>* negC;
 int* posOc;
 int* negOc;
 int maxOcc;
+int seed;
+bool tabu_flag = true;
+int mrq = 10;
+int fct = 1;
+int ict = 1;
+double cb = 4.5;
+double eps = 1.0;
+double lct = 0.5;
 vector<int> clauseT;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
@@ -59,7 +67,6 @@ void printUsage();
 
 template<class T>
 class Process{
-	int seed;
 	int* numP;
 	vector<int> unsatCs;
 	double* probs;
@@ -69,25 +76,9 @@ class Process{
 	int maxLOcc;
 	T generator;
 
-	/*settings*/
-	bool tabu_flag;
-	/*option values*/
-
-
-	int maxFlips;
-	int fct;
-	int ict;
-	int rct1;
-	int rct2;
-	int cct;
-	double cb;
-	double eps;
-	double lct;
-
 public:
-	Process(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
+	Process();
 	void optimal();
-	void parseOptions(const vector<bool>& setB, const vector<int>& setI,const vector<double>& setD);
 	void printOptions();
 	double LookUpTable_exp(int literal);
 	double LookUpTable_poly(int literal);
