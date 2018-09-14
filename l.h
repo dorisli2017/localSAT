@@ -48,6 +48,7 @@ int ict = 1;
 double cb = 4.5;
 double eps = 1.0;
 double lct = 0.5;
+double noise = 0;
 vector<int> clauseT;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
