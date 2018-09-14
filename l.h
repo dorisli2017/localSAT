@@ -45,11 +45,12 @@ int seed;
 int mrq = 10;
 int fct = 1;
 int ict = 1;
-double cb = 4.5;
-double eps = 0.9;
+double cb;
+double eps;
 double lct = 0.5;
-double noise = 0;
+double noise = 1;
 int maxL = 0;
+double ratio;
 vector<int> clauseT;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/

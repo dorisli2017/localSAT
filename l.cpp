@@ -114,11 +114,22 @@ Process<T>::Process(){
 	case 1:biasAssignment();break;
 	default: randomBiasAssignment();
 	}
-	//set lookuptable
-	if(maxL < 4){
-		fct = 0;
+	if(maxL <= 3){
 		cb = 2.06;
+		eps = 0.9;
+		fct = 0;
 	}
+	else if (maxL <=4){
+		cb = 2.85;
+	}
+	else if(maxL <=5){
+		cb = 3.7;
+	}
+	else if(maxL <= 6){
+		cb = 5.1;
+	}
+	else cb = 5.4;
+	//set lookuptable
 	switch (fct){
 	case 0:initLookUpTable_poly();
 			lookUp =&Process::LookUpTable_poly;
@@ -192,6 +203,7 @@ void parseLine(string line,int indexC){
 		strtok(NULL, s);
 		numVs = atoi(strtok(NULL, s))+1;
 		numCs = atoi(strtok(NULL, s));
+		ratio = (double)numCs/numVs;
 		return;
     }// for the p line
     int lit;
@@ -393,7 +405,7 @@ int Process<T>::getFlipLiteral(int cIndex){
 	else{
 	temp=(this->*Process::lookUp)(size);
 	}
-	temp = temp* flipCount/numVs;
+	temp = noise* temp* flipCount/numVs;
 	int j=0,bre,min = numCs+1;
 	double sum=0,randD;
 	int greedyLiteral = 0;
