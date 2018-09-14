@@ -350,11 +350,6 @@ void Process<T>::setAssignment(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-	if( tabu_flag){
-		for(int i = 0; i < numVs; i++){
-			tabuS[i] =0;
-		}
-	}
    	for(int j = 0; j < numVs; j++){
 		if(assign[j] == false){
 	   		for (std::vector<int>::const_iterator i = negC[j].begin(); i != negC[j].end(); ++i){
@@ -388,11 +383,17 @@ void Process<T>::optimal(){
 template<class T>
 int Process<T>::getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
-	int j=0,bre;
-	double sum=0,randD1,randD2;
-	int  randomLiteral1,randomLiteral2;
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
+		//if(tabu_flag && bre == 0 && tabuS[abs(*i)] == 0) return *i;
+		if(bre < min){
+			min = bre;
+			greedyLiteral = *i;
+		}
 		if(bre < maxLOcc){
 		sum+= lookUpTable[bre];
 		}
@@ -402,45 +403,21 @@ int Process<T>::getFlipLiteral(int cIndex){
 		probs[j]= sum;
 		j++;
 	}
-	if(!tabu_flag){
-		randD1 = ((double)(this->*randINT)()/RAND_MAX)*sum;
-		assert(randD1 >= 0);
-		for(int i = 0; i < j;i++){
-			if(probs[i]< randD1){
-				continue;
-			}
-			randomLiteral1= vList[i];
-			break;
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
 		}
-		return randomLiteral1;
+		randomLiteral= vList[i];
+		break;
 	}
-	else{
-		int randD_1 = ((double)(this->*randINT)()/RAND_MAX)*sum;
-		int randD_2 = ((double)(this->*randINT)()/RAND_MAX)*sum;
-		if(randD_1<randD_2) {
-			randD1 = randD_1;
-			randD2 = randD_2;
-		}
-		else{
-			randD1 = randD_2;
-			randD2 = randD_1;
-		}
-		int i = 0;
-		for(; i < j; i++){
-			if(probs[i]< randD1) continue;
-			randomLiteral1 = vList[i];
-			break;
-		}
-		for(;i < j; i++){
-			if(probs[i]< randD2) continue;
-			randomLiteral2 = vList[i];
-			break;
-		}
-		if(tabuS[abs(randomLiteral1)] < tabuS[abs(randomLiteral2)]){
-			return randomLiteral1;
-		}
-		else return randomLiteral2;
-	}
+	if(!tabu_flag) return randomLiteral;
+	int s1 =tabuS[abs(greedyLiteral)]; 
+	int s2 = tabuS[abs(randomLiteral)];
+	double  temp = (double)unsatCs.size()/numCs;
+	if(s1 < s2*temp) return greedyLiteral;
+	else return randomLiteral;
 }
 template<class T>
 void Process<T>::flip(int literal){

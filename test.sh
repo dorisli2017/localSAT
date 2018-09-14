@@ -1,6 +1,6 @@
-timeout 5m /usr/bin/time -f "wtime=%e" ./lt $1 1962042455 &> $1.l1t
-timeout 5m /usr/bin/time -f "wtime=%e" ./lt $1 1112841915 &> $1.l2t
-timeout 5m /usr/bin/time -f "wtime=%e" ./lt $1 566263966 &> $1.l3t
+timeout 2m /usr/bin/time -f "wtime=%e" ./lt $1 1962042455 &> $1.l1rt
+timeout 2m /usr/bin/time -f "wtime=%e" ./lt $1 1112841915 &> $1.l2rt
+timeout 2m /usr/bin/time -f "wtime=%e" ./lt $1 566263966 &> $1.l3rt
 #timeout 5m /usr/bin/time -f "wtime=%e" ./lrb $1 1962042455 &> $1.l1rb
 #timeout 5m /usr/bin/time -f "wtime=%e" ./lrb $1 1112841915 &> $1.l2rb
 #timeout 5m /usr/bin/time -f "wtime=%e" ./lrb $1 566263966 &> $1.l3rb
