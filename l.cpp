@@ -388,7 +388,8 @@ void Process<T>::optimal(){
 	while(true){
 		if (unsatCs.size()== 0){
 			cout<< "s SATISFIABLE"<< endl;
-			printf("flips : %llu", flipCount);
+			printf("flips : %llu\n", flipCount);
+			printf("greedyflips : %llu", flipGCount);
 			return;
 		}
 		search_prob();
@@ -396,23 +397,17 @@ void Process<T>::optimal(){
 }
 template<class T>
 int Process<T>::getFlipLiteral(int cIndex){
+	clauseT.clear();
 	vector<int>&  vList = clauses[cIndex];
-	int size = unsatCs.size();
-	double temp;
-	if(size < maxLOcc){
-		temp= lookUpTable[size];
-	}
-	else{
-	temp=(this->*Process::lookUp)(size);
-	}
-	temp = noise* temp* flipCount/numVs;
 	int j=0,bre,min = numCs+1;
 	double sum=0,randD;
 	int greedyLiteral = 0;
 	int  randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-		if(bre == 0 && tabuS[abs(*i)] < temp) return *i;
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
 		if(bre < maxLOcc){
 		sum+= lookUpTable[bre];
 		}
@@ -421,6 +416,26 @@ int Process<T>::getFlipLiteral(int cIndex){
 		}
 		probs[j]= sum;
 		j++;
+	}
+	int cS = clauseT.size();
+	if(cS > 0){
+		int index = (this->*randINT)()%cS;
+		double temp;
+		if(cS < maxLOcc){
+			temp= lookUpTable[cS];
+		}
+		else{
+		temp=(this->*Process::lookUp)(cS);
+		}
+		temp = noise* temp* flipCount/numVs;
+		for(int i =0; i < cS; i++){
+			greedyLiteral = clauseT[index];
+			if(tabuS[abs(greedyLiteral)] < temp){
+				flipGCount++;
+				return greedyLiteral;
+			}
+			index = (index+1)%cS;
+		}
 	}
 	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
 	assert(randD >= 0);

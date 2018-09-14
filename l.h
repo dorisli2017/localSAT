@@ -31,6 +31,7 @@ using namespace std;
 
 /*problem and assignment*/
 long long int flipCount = 0;
+long long int flipGCount = 0;
 char* fileName;
 int numCs;
 int numVs;
