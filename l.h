@@ -46,9 +46,10 @@ int mrq = 10;
 int fct = 1;
 int ict = 1;
 double cb = 4.5;
-double eps = 1.0;
+double eps = 0.9;
 double lct = 0.5;
 double noise = 0;
+int maxL = 0;
 vector<int> clauseT;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/

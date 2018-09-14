@@ -115,6 +115,10 @@ Process<T>::Process(){
 	default: randomBiasAssignment();
 	}
 	//set lookuptable
+	if(maxL < 4){
+		fct = 0;
+		cb = 2.06;
+	}
 	switch (fct){
 	case 0:initLookUpTable_poly();
 			lookUp =&Process::LookUpTable_poly;
@@ -191,7 +195,7 @@ void parseLine(string line,int indexC){
 		return;
     }// for the p line
     int lit;
-    int size;
+    int size = 0;
     char* token = strtok(str, s);
     while(token != NULL){
 		if(*token== '-'){
@@ -204,6 +208,7 @@ void parseLine(string line,int indexC){
 		}
 		if(*token == '0'){
 			clauses[indexC] = clauseT;
+			if(size > maxL) maxL = size;
 			clauseT.clear();
 		    return;
 		}
