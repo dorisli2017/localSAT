@@ -42,7 +42,6 @@ int* posOc;
 int* negOc;
 int maxOcc;
 int seed;
-bool tabu_flag = true;
 int mrq = 10;
 int fct = 1;
 int ict = 1;

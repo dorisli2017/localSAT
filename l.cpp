@@ -100,11 +100,9 @@ Process<T>::Process(){
 		randINT = &Process::randI;
 		generator.seed(seed);
 	}
-	if(tabu_flag){
-		tabuS = (int*) malloc(sizeof(int) * numVs);
-		for(int i = 0; i < numVs; i++){
-			tabuS[i] = 0;
-		}
+	tabuS = (int*) malloc(sizeof(int) * numVs);
+	for(int i = 0; i < numVs; i++){
+		tabuS[i] = 0;
 	}
 	maxLOcc = maxOcc*lct;
 	numP = (int*) malloc(sizeof(int) * numCs);
@@ -221,7 +219,6 @@ void parseLine(string line,int indexC){
 template<class T>
 void Process<T>::printOptions(){
 	printf("localSAT options: \n");
-	cout<<"c tabu_flag: "<<tabu_flag<<endl;
 	cout<<"c seed: "<<seed<<endl;
 	cout<<"c fct: "<<fct<<endl;
 	cout<<"c ict: "<<ict<<endl;
@@ -383,17 +380,22 @@ void Process<T>::optimal(){
 template<class T>
 int Process<T>::getFlipLiteral(int cIndex){
 	vector<int>&  vList = clauses[cIndex];
+	int size = unsatCs.size();
+	double temp;
+	if(size < maxLOcc){
+		temp= lookUpTable[size];
+	}
+	else{
+	temp=(this->*Process::lookUp)(size);
+	}
+	temp = temp* flipCount/numVs;
 	int j=0,bre,min = numCs+1;
 	double sum=0,randD;
 	int greedyLiteral = 0;
 	int  randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
 		bre = computeBreakScore(*i);
-		//if(tabu_flag && bre == 0 && tabuS[abs(*i)] == 0) return *i;
-		if(bre < min){
-			min = bre;
-			greedyLiteral = *i;
-		}
+		if(bre == 0 && tabuS[abs(*i)] < temp) return *i;
 		if(bre < maxLOcc){
 		sum+= lookUpTable[bre];
 		}
@@ -412,12 +414,7 @@ int Process<T>::getFlipLiteral(int cIndex){
 		randomLiteral= vList[i];
 		break;
 	}
-	if(!tabu_flag) return randomLiteral;
-	int s1 =tabuS[abs(greedyLiteral)]; 
-	int s2 = tabuS[abs(randomLiteral)];
-	double  temp = (double)unsatCs.size()/numCs;
-	if(s1 < s2*temp) return greedyLiteral;
-	else return randomLiteral;
+	return randomLiteral;
 }
 template<class T>
 void Process<T>::flip(int literal){
@@ -538,7 +535,7 @@ void Process<T>::search_prob(){
 	unsatCs[randC]=unsatCs.back();
 	unsatCs.pop_back();
 	flip(flipLindex);
-	if(tabu_flag) tabuS[abs(flipLindex)]++;
+	tabuS[abs(flipLindex)]++;
 }
 
 
