@@ -1,4 +1,4 @@
 all:
-	g++ -O3 l.cpp -std=c++11 -o lt
+	g++ -O3 l.cpp -std=c++11 -o lt10
 clean:
 	rm l
