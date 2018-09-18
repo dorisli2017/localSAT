@@ -49,7 +49,7 @@ int ict = 1;
 double cb;
 double eps;
 double lct = 0.5;
-double noise = 10;
+double noise;
 int maxL = 0;
 double ratio;
 vector<int> clauseT;
@@ -63,8 +63,6 @@ void initialAssignment();
 void printVariables();
 void printClauses();
 void debugProblem();
-int getFlipCandidate_wa(int cIndex);
-int getFlipCandidate_max(int cIndex);
 void printVector(vector<int>& vec);
 void printUsage();
 
@@ -91,7 +89,9 @@ public:
 	void initLookUpTable_exp(void);
 	void initLookUpTable_poly(void);
 	void search_prob();
-	int getFlipLiteral(int cIndex);
+	int (Process::*getFlipLiteral)(int)= NULL;
+	int getFlipLiteral3(int cIndex);
+	int getFlipLiteral57(int cIndex);
 	void flip(int literal);
 	void biasAssignment();
 	void randomBiasAssignment();

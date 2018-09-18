@@ -118,17 +118,28 @@ Process<T>::Process(){
 		cb = 2.06;
 		eps = 0.9;
 		fct = 0;
+		getFlipLiteral =&Process::getFlipLiteral3;
 	}
 	else if (maxL <=4){
 		cb = 2.85;
+		noise = 2;
+		getFlipLiteral =&Process::getFlipLiteral57;
 	}
 	else if(maxL <=5){
 		cb = 3.7;
+		noise = 2;
+		getFlipLiteral =&Process::getFlipLiteral57;
 	}
 	else if(maxL <= 6){
 		cb = 5.1;
+		noise = 2;
+		getFlipLiteral =&Process::getFlipLiteral57;
 	}
-	else cb = 5.4;
+	else{
+		cb = 5.4;
+		noise = 2;
+		getFlipLiteral =&Process::getFlipLiteral57;
+	}
 	//set lookuptable
 	switch (fct){
 	case 0:initLookUpTable_poly();
@@ -396,7 +407,7 @@ void Process<T>::optimal(){
 	}
 }
 template<class T>
-int Process<T>::getFlipLiteral(int cIndex){
+int Process<T>::getFlipLiteral3(int cIndex){
 	clauseT.clear();
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre,min = numCs+1;
@@ -421,15 +432,56 @@ int Process<T>::getFlipLiteral(int cIndex){
 	double temp;
 	if(cS > 0){
 		int index = (this->*randINT)()%cS;
-		//double temp = (this->*randINT)()*((double)flipCount*noise/RAND_MAX);
-		int unsatN = cS;
-		if(unsatN < maxLOcc){
-			temp= lookUpTable[unsatN];
+		greedyLiteral = clauseT[index];
+	}
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
+		}
+		randomLiteral= vList[i];
+		break;
+	}
+	if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
+	int s1 = tabuS[abs(greedyLiteral)];
+	int s2 = tabuS[abs(randomLiteral)]+s1;
+	if(s2==0  || ((this->*randINT)()%s2) > s1) return greedyLiteral;
+	else return randomLiteral;
+}
+template<class T>
+int Process<T>::getFlipLiteral57(int cIndex){
+	clauseT.clear();
+	vector<int>&  vList = clauses[cIndex];
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
+	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+		bre = computeBreakScore(*i);
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
+		if(bre < maxLOcc){
+		sum+= lookUpTable[bre];
 		}
 		else{
-		temp=  (this->*Process::lookUp)(unsatN);
+		sum+=(this->*Process::lookUp)(bre);
 		}
-		temp = temp * noise * flipCount*(double)(this->*randINT)()/RAND_MAX;
+		probs[j]= sum;
+		j++;
+	}
+	int cS = clauseT.size();
+	double temp;
+	if(cS > 0){
+		int index = (this->*randINT)()%cS;
+		if(cS < maxLOcc){
+			temp= lookUpTable[cS];
+		}
+		else{
+		temp=  (this->*Process::lookUp)(cS);
+		}
+		temp = temp * noise *(double)flipCount/numVs;
 		for(int i =0; i < cS; i++){
 			greedyLiteral = clauseT[index];
 			if(tabuS[abs(greedyLiteral)] < temp){
@@ -448,11 +500,7 @@ int Process<T>::getFlipLiteral(int cIndex){
 		randomLiteral= vList[i];
 		break;
 	}
-	/*if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
-	int s1 = tabuS[abs(greedyLiteral)];
-	int s2 = tabuS[abs(randomLiteral)]+s1;
-	if(s2==0  || ((this->*randINT)()%s2) > s1*noise* temp) return greedyLiteral;
-	else */return randomLiteral;
+	return randomLiteral;
 }
 template<class T>
 void Process<T>::flip(int literal){
@@ -569,7 +617,7 @@ void Process<T>::search_prob(){
 		randC = (this->*randINT)()%size;
 		flipCindex = unsatCs[randC];
 	}
-	int flipLindex = getFlipLiteral(flipCindex);
+	int flipLindex = (this->*Process::getFlipLiteral)(flipCindex);
 	unsatCs[randC]=unsatCs.back();
 	unsatCs.pop_back();
 	flip(flipLindex);
