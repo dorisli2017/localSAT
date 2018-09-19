@@ -110,6 +110,7 @@ Process<T>::Process(){
 	assign = (bool*)malloc(sizeof(bool) * numVs);
 	//set inititial assignment
 	if(maxL <= 3){
+		ict = 0;
 		cb = 2.06;
 		eps = 0.9;
 		fct = 0;
@@ -118,6 +119,7 @@ Process<T>::Process(){
 		flip = &Process::flip3;
 	}
 	else if (maxL <=4){
+		ict = 0;
 		cb = 2.85;
 		noise = 2;
 		setAssignment =&Process::setAssignment3;
@@ -125,6 +127,7 @@ Process<T>::Process(){
 		flip = &Process::flip3;
 	}
 	else if(maxL <=5){
+		ict = 1;
 		cb = 3.7;
 		noise = 2;
 		setAssignment =&Process::setAssignment57;
@@ -132,6 +135,7 @@ Process<T>::Process(){
 		flip = &Process::flip57;
 	}
 	else if(maxL <= 6){
+		ict = 1;
 		cb = 5.1;
 		noise = 2;
 		setAssignment =&Process::setAssignment57;
@@ -139,6 +143,7 @@ Process<T>::Process(){
 		flip = &Process::flip57;
 	}
 	else{
+		ict = 1;
 		cb = 5.4;
 		noise = 2;
 		setAssignment =&Process::setAssignment57;
@@ -432,8 +437,9 @@ void Process<T>::optimal(){
 	while(true){
 		if (unsatCs.size()== 0){
 			cout<< "s SATISFIABLE"<< endl;
-			printf("flips : %llu\n", flipCount);
+			printf("flips : %llu", flipCount);
 			printf("greedyflips : %llu", flipGCount);
+			//test();
 			return;
 		}
 		search_prob();
@@ -565,6 +571,7 @@ template<class T>
 void Process<T>::flip57(int literal){
 	flipCount++;
 	int aIndex = abs(literal);
+	assign[aIndex] = (literal > 0);
     vector<int>& occList =(literal > 0)? negC[aIndex] :posC[aIndex];
     vector<int>& deList =(literal > 0)? posC[aIndex]:negC[aIndex];
 	std::vector<int>::const_iterator i;
@@ -597,7 +604,6 @@ void Process<T>::flip57(int literal){
 		}
 		numP[*i]++;
 	}
-	assign[literal] = (literal>0);
 }
 
 
