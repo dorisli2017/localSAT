@@ -109,38 +109,48 @@ Process<T>::Process(){
 	probs = (double*)malloc(sizeof(double) * numVs);
 	assign = (bool*)malloc(sizeof(bool) * numVs);
 	//set inititial assignment
+	if(maxL <= 3){
+		cb = 2.06;
+		eps = 0.9;
+		fct = 0;
+		setAssignment =&Process::setAssignment3;
+		getFlipLiteral =&Process::getFlipLiteral3;
+		flip = &Process::flip3;
+	}
+	else if (maxL <=4){
+		cb = 2.85;
+		noise = 2;
+		setAssignment =&Process::setAssignment3;
+		getFlipLiteral =&Process::getFlipLiteral3;
+		flip = &Process::flip3;
+	}
+	else if(maxL <=5){
+		cb = 3.7;
+		noise = 2;
+		setAssignment =&Process::setAssignment57;
+		getFlipLiteral =&Process::getFlipLiteral57;
+		flip = &Process::flip57;
+	}
+	else if(maxL <= 6){
+		cb = 5.1;
+		noise = 2;
+		setAssignment =&Process::setAssignment57;
+		getFlipLiteral =&Process::getFlipLiteral57;
+		flip = &Process::flip57;
+	}
+	else{
+		cb = 5.4;
+		noise = 2;
+		setAssignment =&Process::setAssignment57;
+		getFlipLiteral =&Process::getFlipLiteral57;
+		flip = &Process::flip57;
+	}
+	//set lookuptable
 	switch(ict){
 	case 0:randomAssignment();break;
 	case 1:biasAssignment();break;
 	default: randomBiasAssignment();
 	}
-	if(maxL <= 3){
-		cb = 2.06;
-		eps = 0.9;
-		fct = 0;
-		getFlipLiteral =&Process::getFlipLiteral3;
-	}
-	else if (maxL <=4){
-		cb = 2.85;
-		noise = 2;
-		getFlipLiteral =&Process::getFlipLiteral57;
-	}
-	else if(maxL <=5){
-		cb = 3.7;
-		noise = 2;
-		getFlipLiteral =&Process::getFlipLiteral57;
-	}
-	else if(maxL <= 6){
-		cb = 5.1;
-		noise = 2;
-		getFlipLiteral =&Process::getFlipLiteral57;
-	}
-	else{
-		cb = 5.4;
-		noise = 2;
-		getFlipLiteral =&Process::getFlipLiteral57;
-	}
-	//set lookuptable
 	switch (fct){
 	case 0:initLookUpTable_poly();
 			lookUp =&Process::LookUpTable_poly;
@@ -346,7 +356,7 @@ void Process<T>::biasAssignment(){
 			}
 			else assign[i] = false;
 	}
-	setAssignment();
+	(this->*setAssignment)();
 }
 template<class T>
 void Process<T>::randomBiasAssignment(){
@@ -360,36 +370,59 @@ void Process<T>::randomBiasAssignment(){
 			assign[i] = ((this->*randINT)()%sum)<posOc[i];
 		}
 	}
-	setAssignment();
+	(this->*setAssignment)();
 }
 template<class T>
 void Process<T>::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
    		assign[j] = ((this->*randINT)()%2 ==1);
    	}
-    setAssignment();
+	(this->*setAssignment)();
 }
-
 template<class T>
-void Process<T>::setAssignment(){
+void Process<T>::setAssignment3(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
-   	for(int j = 0; j < numVs; j++){
-		if(assign[j] == false){
-	   		for (std::vector<int>::const_iterator i = negC[j].begin(); i != negC[j].end(); ++i){
-	   			numP[*i]++;
-	   		}
-		}
-		else{
-			for (std::vector<int>::const_iterator i = posC[j].begin(); i != posC[j].end(); ++i){
-	   			numP[*i]++;
-			}
+   	for(int j = 0; j < numCs; j++){
+   		for (std::vector<int>::const_iterator i = clauses[j].begin(); i != clauses[j].end(); ++i){
+   			if(((*i) > 0 && (assign[*i]== true))||((*i) < 0 && assign[-*i]== false)){
+   				numP[j]++;
+   			}
+   		}
+   		if(numP[j] == 0){
+   			unsatCs.push_back(j);
    		}
    	}
+
+}
+template<class T>
+void Process<T>::setAssignment57(){
    	for(int i = 0; i < numCs; i++){
-   		if(numP[i] == 0){
-   			unsatCs.push_back(i);
+   		numP[i] = 0;
+   	}
+	breaks = (int*) malloc(sizeof(int) * numVs);
+	critVar = (int*) malloc(sizeof(int) * numCs);
+	for (int i = 0; i <= numVs; i++) {
+		breaks[i] = 0;
+	}
+	int critV = 0;
+   	for(int j = 0; j < numCs; j++){
+   		for (std::vector<int>::const_iterator i = clauses[j].begin(); i !=clauses[j].end(); ++i){
+   			if(((*i) > 0 && assign[*i]== true)||((*i) < 0 && assign[-*i]== false)){
+   				numP[j]++;
+   				critV = *i;
+   			}
+   		}
+   		if(numP[j] == 0){
+   			unsatCs.push_back(j);
+   		}
+   		else{
+   			if(numP[j] == 1){
+   				critV = abs(critV);
+   				critVar[j] = critV;
+   				breaks[critV]++;
+   			}
    		}
    	}
 }
@@ -458,7 +491,7 @@ int Process<T>::getFlipLiteral57(int cIndex){
 	int greedyLiteral = 0;
 	int  randomLiteral;
 	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
-		bre = computeBreakScore(*i);
+		bre = breaks[abs(*i)];
 		if(bre == 0){
 			clauseT.push_back(*i);
 		}
@@ -503,7 +536,7 @@ int Process<T>::getFlipLiteral57(int cIndex){
 	return randomLiteral;
 }
 template<class T>
-void Process<T>::flip(int literal){
+void Process<T>::flip3(int literal){
 	flipCount++;
 	std::vector<int>::const_iterator i;
 	if(literal > 0){
@@ -528,6 +561,47 @@ void Process<T>::flip(int literal){
 		assign[-literal]= false;
 	}
 }
+template<class T>
+void Process<T>::flip57(int literal){
+	flipCount++;
+	int aIndex = abs(literal);
+    vector<int>& occList =(literal > 0)? negC[aIndex] :posC[aIndex];
+    vector<int>& deList =(literal > 0)? posC[aIndex]:negC[aIndex];
+	std::vector<int>::const_iterator i;
+	for (i = occList.begin(); i != occList.end(); ++i){
+		if(numP[*i] == 1){
+			breaks[aIndex]--;
+			unsatCs.push_back(*i);
+		}
+		else if(numP[*i] == 2){
+			int aj;
+			for(std::vector<int>::const_iterator j = clauses[*i].begin(); j != clauses[*i].end(); ++j){
+				aj = abs(*j);
+				if (((*j)==aj)== assign[aj]) {
+					critVar[*i] = aj;
+					breaks[aj]++;
+					break;
+				}
+			}
+
+		}
+		numP[*i]--;
+	}
+	for (i = deList.begin(); i != deList.end(); ++i){
+		if(numP[*i]== 0){
+			critVar[*i] = aIndex;
+			breaks[aIndex]++;
+		}
+		else if(numP[*i]== 1){
+			breaks[critVar[*i]]--;
+		}
+		numP[*i]++;
+	}
+	assign[literal] = (literal>0);
+}
+
+
+
 template<class T>
 void Process<T>::test(){
 	ifstream fp;
@@ -620,7 +694,7 @@ void Process<T>::search_prob(){
 	int flipLindex = (this->*Process::getFlipLiteral)(flipCindex);
 	unsatCs[randC]=unsatCs.back();
 	unsatCs.pop_back();
-	flip(flipLindex);
+	(this->*flip)(flipLindex);
 	tabuS[abs(flipLindex)]++;
 }
 

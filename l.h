@@ -53,6 +53,8 @@ double noise;
 int maxL = 0;
 double ratio;
 vector<int> clauseT;
+int *breaks;
+int *critVar;
 uniform_int_distribution<int> distribution(0,INT_MAX);
 /*methods*/
 
@@ -92,11 +94,15 @@ public:
 	int (Process::*getFlipLiteral)(int)= NULL;
 	int getFlipLiteral3(int cIndex);
 	int getFlipLiteral57(int cIndex);
-	void flip(int literal);
+	void (Process::*flip)(int literal)= NULL;
+	void flip3(int literal);
+	void flip57(int literal);
 	void biasAssignment();
 	void randomBiasAssignment();
 	void randomAssignment();
-	void setAssignment();
+	void (Process::*setAssignment)() = NULL;
+	void setAssignment3();
+	void setAssignment57();
 	void printAssignment();
 	void printUnsatCs();
 	void printNumP();
