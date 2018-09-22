@@ -465,14 +465,15 @@ int Process<T>::getFlipLiteral3(int cIndex){
 		j++;
 	}
 	int cS = clauseT.size();
+	int temp;
 	if(cS > 0){
 		int index = (this->*randINT)()%cS;
 		int unsatN = unsatCs.size();
 		if(unsatN < maxLOcc){
-			noise = noise*lookUpTable[unsatN];
+			temp = noise*lookUpTable[unsatN];
 		}
 		else{
-			noise =  noise*(this->*Process::lookUp)(unsatN);
+			temp =  noise*(this->*Process::lookUp)(unsatN);
 		}
 		greedyLiteral = clauseT[index];
 	}
@@ -488,7 +489,7 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
 	int s1 = tabuS[abs(greedyLiteral)];
 	int s2 = tabuS[abs(randomLiteral)]+s1;
-	if(s2==0  || (noise*((this->*randINT)()%s2)) > s1) return greedyLiteral;
+	if(s2==0  || (temp*((this->*randINT)()%s2)) > s1) return greedyLiteral;
 	else return randomLiteral;
 }
 template<class T>

@@ -11,6 +11,7 @@ int main(int argc, char *argv[]){
 	fileName = argv[1];
 	seed = atoi(argv[2]);
 	noise = atof(argv[3]);
+	cout<<"noise is: "<< noise<< endl;
 	readFile(fileName);
 	switch(mrq){
 	case 0:{
@@ -469,10 +470,10 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	if(cS > 0){
 		int index = (this->*randINT)()%cS;
 		if(cS < maxLOcc){
-			noise = noise*lookUpTable[cS];
+			temp = noise*lookUpTable[cS];
 		}
 		else{
-			noise =  noise*(this->*Process::lookUp)(cS);
+			temp =  noise*(this->*Process::lookUp)(cS);
 		}
 		greedyLiteral = clauseT[index];
 	}
@@ -488,7 +489,7 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
 	int s1 = tabuS[abs(greedyLiteral)];
 	int s2 = tabuS[abs(randomLiteral)]+s1;
-	if(s2==0  || (noise*((this->*randINT)()%s2)) > s1) return greedyLiteral;
+	if(s2==0  ||(temp*((this->*randINT)()%s2)) > s1) return greedyLiteral;
 	else return randomLiteral;
 }
 template<class T>
