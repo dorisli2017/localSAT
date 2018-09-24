@@ -49,7 +49,7 @@ int ict = 1;
 double cb;
 double eps;
 double lct = 0.5;
-double noise;
+double noise = 2.0;
 int maxL = 0;
 double ratio;
 vector<int> clauseT;

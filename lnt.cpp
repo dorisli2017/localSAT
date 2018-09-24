@@ -10,7 +10,6 @@
 int main(int argc, char *argv[]){
 	fileName = argv[1];
 	seed = atoi(argv[2]);
-	noise = atof(argv[3]);
 	readFile(fileName);
 	switch(mrq){
 	case 0:{
@@ -466,14 +465,8 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	}
 	int cS = clauseT.size();
 	if(cS > 0){
-		double temp = noise * (double)flipCount/numVs;
+		double temp = (double)flipCount/numVs;
 		int index = (this->*randINT)()%cS;
-		if(cS< maxLOcc){
-			temp= temp*lookUpTable[cS];
-		}
-		else{
-		temp=  temp*(this->*Process::lookUp)(cS);
-		}
 		for(int i =0; i < cS; i++){
 			greedyLiteral = clauseT[index];
 			if(tabuS[abs(greedyLiteral)] < temp){
