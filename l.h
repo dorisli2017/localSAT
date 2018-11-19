@@ -12,7 +12,6 @@
 
 #include <iostream>
 #include <climits>
-#include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string>
@@ -36,7 +35,6 @@ char* fileName;
 int numCs;
 int numVs;
 vector<int>* clauses;
-struct V *variables;
 vector<int>* posC;
 vector<int>* negC;
 int* posOc;
@@ -92,17 +90,24 @@ public:
 	void initLookUpTable_poly(void);
 	void search_prob();
 	int (Process::*getFlipLiteral)(int)= NULL;
-	int getFlipLiteral3(int cIndex);
-	int getFlipLiteral57(int cIndex);
+
+	int getFlipLitL_Average(int cIndex);
+	int getFlipLitS_Average(int cIndex);
+	int getFlipLitL_Walk(int cIndex);\
+	int getFlipLitM_Walk(int cIndex);
+	int getFlipLitS_Walk(int cIndex);
+	int getFlipLitL_RF(int cIndex);
+	int getFlipLitS_RF(int cIndex);
+
 	void (Process::*flip)(int literal)= NULL;
-	void flip3(int literal);
-	void flip57(int literal);
+	void flipS(int literal);
+	void flipL(int literal);
 	void biasAssignment();
 	void randomBiasAssignment();
 	void randomAssignment();
 	void (Process::*setAssignment)() = NULL;
-	void setAssignment3();
-	void setAssignment57();
+	void setAssignmentS();
+	void setAssignmentL();
 	void printAssignment();
 	void printUnsatCs();
 	void printNumP();

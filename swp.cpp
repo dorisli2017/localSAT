@@ -1,6 +1,8 @@
 /*
- * main.cpp
- *
+ * l.cpp
+ * local search for SAT problem
+ * three versions: WALK, Average, Random-Flip
+ * details see  my master thesis https://github.com/dorisli2017/Master/tree/master/masterThesis_GuangpingLi
  *  Created on: May 8, 2018
  *      Author: ping
  */
@@ -10,8 +12,8 @@
 int main(int argc, char *argv[]){
 	fileName = argv[1];
 	seed = atoi(argv[2]);
-	noise = atof(argv[3]);
 	readFile(fileName);
+	// mrq: the random procedure used in the shole process
 	switch(mrq){
 	case 0:{
 		Process<minstd_rand0> process;
@@ -64,43 +66,21 @@ int main(int argc, char *argv[]){
 		break;
 	}
 	}
-	//randTest();
-	//debugProblem();
-	//process.printOptions();
-	//process.debugAssign();
 }
-void debugProblem(){
-	printVariables();
-	printClauses();
-	cout<< "Occurences:"<< endl;
-	for(int i = 1; i < numVs; i++){
-		cout<< i<< ":"<<posOc[i]<< " "<<negOc[i]<< endl;
-	}
-}
-template<class T>
-void Process<T>::debugAssign(){
-	/* Testing code**********************************/
-		printOptions();
-	   	printAssignment();
-	   	printUnsatCs();
-	   	printNumP();
-
-
-	/*Testing code**********************************/
-
-}
+//set up the settings for the further search
 template<class T>
 Process<T>::Process(){
-	//set the parameters
-	   // set tabuS
+// rand()
 	if(mrq == 10){
 		srand(seed);
 		randINT = &Process::randI2;
 	}
+// random generator
 	else {
 		randINT = &Process::randI;
 		generator.seed(seed);
 	}
+// initial tabu Stack
 	tabuS = (int*) malloc(sizeof(int) * numVs);
 	for(int i = 0; i < numVs; i++){
 		tabuS[i] = 0;
@@ -109,43 +89,47 @@ Process<T>::Process(){
 	numP = (int*) malloc(sizeof(int) * numCs);
 	probs = (double*)malloc(sizeof(double) * numVs);
 	assign = (bool*)malloc(sizeof(bool) * numVs);
-	//set inititial assignment
+	// suggested by the probSAT paper
 	if(maxL <= 3){
 		ict = 0;
 		cb = 2.06;
 		eps = 0.9;
 		fct = 0;
-		setAssignment =&Process::setAssignment3;
-		getFlipLiteral =&Process::getFlipLiteral3;
-		flip = &Process::flip3;
+		setAssignment =&Process::setAssignmentS;
+		getFlipLiteral =&Process::getFlipLitS_Average;
+		flip = &Process::flipS;
 	}
 	else if (maxL <=4){
 		ict = 0;
 		cb = 2.85;
-		setAssignment =&Process::setAssignment3;
-		getFlipLiteral =&Process::getFlipLiteral3;
-		flip = &Process::flip3;
+		noise = 2;
+		setAssignment =&Process::setAssignmentS;
+		getFlipLiteral =&Process::getFlipLitS_Average;
+		flip = &Process::flipS;
 	}
 	else if(maxL <=5){
 		ict = 1;
 		cb = 3.7;
-		setAssignment =&Process::setAssignment57;
-		getFlipLiteral =&Process::getFlipLiteral57;
-		flip = &Process::flip57;
+		noise = 2;
+		setAssignment =&Process::setAssignmentL;
+		getFlipLiteral =&Process::getFlipLitL_Average;
+		flip = &Process::flipL;
 	}
 	else if(maxL <= 6){
 		ict = 1;
 		cb = 5.1;
-		setAssignment =&Process::setAssignment57;
-		getFlipLiteral =&Process::getFlipLiteral57;
-		flip = &Process::flip57;
+		noise = 2;
+		setAssignment =&Process::setAssignmentL;
+		getFlipLiteral =&Process::getFlipLitL_Average;
+		flip = &Process::flipL;
 	}
 	else{
 		ict = 1;
 		cb = 5.4;
-		setAssignment =&Process::setAssignment57;
-		getFlipLiteral =&Process::getFlipLiteral57;
-		flip = &Process::flip57;
+		noise = 2;
+		setAssignment =&Process::setAssignmentL;
+		getFlipLiteral =&Process::getFlipLitL_Average;
+		flip = &Process::flipL;
 	}
 	//set lookuptable
 	switch(ict){
@@ -162,10 +146,20 @@ Process<T>::Process(){
 			break;
 	}
 }
-
-/*parse the argument (including options and filename)
- *using getopt_long to allow GNU-style long options as well as single-character options
- */
+// optimize the solution
+template<class T>
+void Process<T>::optimal(){
+	while(true){
+		if (unsatCs.size()== 0){
+			cout<< "s SATISFIABLE"<< endl;
+			printf("flips : %llu\n", flipCount);
+			printf("greedyflips : %llu", flipGCount);
+			//test();
+			return;
+		}
+		search_prob();
+	}
+}
 // construct the Problem with fill information of the input file
 void readFile(const char* fileName){
 	//cout<< "in readFile"<<endl;
@@ -203,6 +197,7 @@ void readFile(const char* fileName){
    	}
    	initialAssignment();
 };
+// memory allocation
 void memAllocate(string buff){
 	parseLine(buff,-1);
 	clauses = new vector<int>[numCs];
@@ -218,6 +213,7 @@ void memAllocate(string buff){
 	}
 	clauseT.reserve(numVs);
 }
+// parse the line in inputfile
 void parseLine(string line,int indexC){
 	char* str = strdup(line.c_str());
     const char s[2] = " ";
@@ -256,86 +252,7 @@ void parseLine(string line,int indexC){
 	perror("a clause line does not terminates");
 	exit(EXIT_FAILURE);
 }
-template<class T>
-void Process<T>::printOptions(){
-	printf("localSAT options: \n");
-	cout<<"c seed: "<<seed<<endl;
-	cout<<"c fct: "<<fct<<endl;
-	cout<<"c ict: "<<ict<<endl;
-	cout<<"c cb: "<<cb<<endl;
-	cout<<"c eps: "<<eps<<endl;
-	cout<<"c lct: "<<lct<<endl;
-	switch(generator){
-	case 0:{
-		cout<<"c rand() generator with seed " <<seed <<endl;
-		break;
-		}
-	case 1:{
-		cout<<"c minstd_rand() generator with seed " <<seed <<endl;
-		break;
-		}
-	default:{
-		cout<<"c mersenne_twister_rand() generator with seed " <<seed <<endl;
-	}
-	}
-	switch(fct){
-	case 0:{
-		cout<<"c polynomial function"<<endl;
-		cout<<"c eps: "<<eps<<endl;
-		cout<<"c cb: "<<cb<<endl;
-		cout<< "pow((eps+break),-cb)" << endl;
-		break;
-		  }
-	default:{
-		cout<<"c exponential function"<<endl;
-		cout<<"c cb: "<<cb<<endl;
-		cout<< "pow(cb,-break)"<< endl;
-		break;
-		   }
-	}
-}
-void printVariables(){
-	cout<< "Variables "<< ": " <<endl ;
-   	for(int i = 1; i < numVs; i++){
-   		cout<< "Variable "<<i << ": " <<endl ;
-   		printVector(posC[i]);
-   		printVector(negC[i]);
-   	}
-}
-void printClauses(){
-	cout<< "Clauses "<< ": " << endl ;
-   	for(int i = 0; i < numCs; i++){
-   		cout<< "Clause "<< i<< ": " ;
-   		printVector(clauses[i]);
-   	}
-}
-template<class T>
-void Process<T>::printAssignment(){
-	cout<< "v ";
-	for(int i = 1; i < numVs; i++){
-		if(assign[i]) cout <<i<<" ";
-		else cout << -i<<" ";
-	}
-	cout <<endl ;
-}
-template<class T>
-void Process<T>::printUnsatCs(){
-	cout<< "Unsatisfied clauses ";
-	printVector(unsatCs);
-	cout <<endl ;
-}
-template<class T>
-void Process<T>::printNumP(){
-	cout<< "numP: ";
-	for(int i = 0; i < numCs; i++){
-		cout << numP[i]<< " ";
-	}
-	cout<<endl;
-}
-
-
-
-
+//set up information of clauses for each variable.
 void initialAssignment(){
 	for(int i = 0; i < numVs; i++){
 		if(posOc[i]> maxOcc) maxOcc = posOc[i];
@@ -350,6 +267,7 @@ void initialAssignment(){
 		}
 	}
 }
+// bias initialization
 template<class T>
 void Process<T>::biasAssignment(){
 	for(int i = 0; i < numVs; i++){
@@ -360,6 +278,7 @@ void Process<T>::biasAssignment(){
 	}
 	(this->*setAssignment)();
 }
+//random-bias initialization
 template<class T>
 void Process<T>::randomBiasAssignment(){
 	int sum;
@@ -374,6 +293,7 @@ void Process<T>::randomBiasAssignment(){
 	}
 	(this->*setAssignment)();
 }
+//random initialization
 template<class T>
 void Process<T>::randomAssignment(){
    	for(int j = 0; j < numVs; j++){
@@ -381,8 +301,9 @@ void Process<T>::randomAssignment(){
    	}
 	(this->*setAssignment)();
 }
+// initial assignment with small clause length <5
 template<class T>
-void Process<T>::setAssignment3(){
+void Process<T>::setAssignmentS(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
@@ -398,8 +319,9 @@ void Process<T>::setAssignment3(){
    	}
 
 }
+// initial assignment with large clause length >4
 template<class T>
-void Process<T>::setAssignment57(){
+void Process<T>::setAssignmentL(){
    	for(int i = 0; i < numCs; i++){
    		numP[i] = 0;
    	}
@@ -429,21 +351,9 @@ void Process<T>::setAssignment57(){
    	}
 }
 
+
 template<class T>
-void Process<T>::optimal(){
-	while(true){
-		if (unsatCs.size()== 0){
-			cout<< "s SATISFIABLE"<< endl;
-			printf("flips : %llu", flipCount);
-			printf("greedyflips : %llu", flipGCount);
-			//test();
-			return;
-		}
-		search_prob();
-	}
-}
-template<class T>
-int Process<T>::getFlipLiteral3(int cIndex){
+int Process<T>::getFlipLitS_Average(int cIndex){
 	clauseT.clear();
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre,min = numCs+1;
@@ -468,12 +378,6 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	double temp;
 	if(cS > 0){
 		int index = (this->*randINT)()%cS;
-		if(cS < maxLOcc){
-			temp = noise*lookUpTable[cS];
-		}
-		else{
-			temp =  noise*(this->*Process::lookUp)(cS);
-		}
 		greedyLiteral = clauseT[index];
 	}
 	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
@@ -488,11 +392,11 @@ int Process<T>::getFlipLiteral3(int cIndex){
 	if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
 	int s1 = tabuS[abs(greedyLiteral)];
 	int s2 = tabuS[abs(randomLiteral)]+s1;
-	if(s2==0  ||(temp*((this->*randINT)()%s2)) > s1) return greedyLiteral;
+	if(s2==0  || ((this->*randINT)()%s2) > s1) return greedyLiteral;
 	else return randomLiteral;
 }
 template<class T>
-int Process<T>::getFlipLiteral57(int cIndex){
+int Process<T>::getFlipLitL_Average(int cIndex){
 	clauseT.clear();
 	vector<int>&  vList = clauses[cIndex];
 	int j=0,bre,min = numCs+1;
@@ -518,10 +422,63 @@ int Process<T>::getFlipLiteral57(int cIndex){
 	if(cS > 0){
 		int index = (this->*randINT)()%cS;
 		if(cS < maxLOcc){
-			temp = noise*lookUpTable[cS];
+			temp= lookUpTable[cS];
 		}
 		else{
-			temp=  noise*(this->*Process::lookUp)(cS);
+		temp=  (this->*Process::lookUp)(cS);
+		}
+		temp = temp * noise *(double)flipCount/numVs;
+		for(int i =0; i < cS; i++){
+			greedyLiteral = clauseT[index];
+			if(tabuS[abs(greedyLiteral)] < temp){
+				flipGCount++;
+				return greedyLiteral;
+			}
+			index = (index+1)%cS;
+		}
+	}
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
+		}
+		randomLiteral= vList[i];
+		break;
+	}
+	return randomLiteral;
+}
+template<class T>
+int Process<T>::getFlipLitL_Walk(int cIndex){
+	clauseT.clear();
+	vector<int>&  vList = clauses[cIndex];
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
+	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+		bre = breaks[abs(*i)];
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
+		if(bre < maxLOcc){
+		sum+= lookUpTable[bre];
+		}
+		else{
+		sum+=(this->*Process::lookUp)(bre);
+		}
+		probs[j]= sum;
+		j++;
+	}
+	int cS = clauseT.size();
+	double temp;
+	if(cS > 0){
+		int index = (this->*randINT)()%cS;
+		if(cS < maxLOcc){
+			temp = 0.5*lookUpTable[cS];
+		}
+		else{
+			temp=  0.5*(this->*Process::lookUp)(cS);
 		}
 		greedyLiteral = clauseT[index];
 	}
@@ -541,7 +498,208 @@ int Process<T>::getFlipLiteral57(int cIndex){
 	else return randomLiteral;
 }
 template<class T>
-void Process<T>::flip3(int literal){
+int Process<T>::getFlipLitM_Walk(int cIndex){
+	clauseT.clear();
+	vector<int>&  vList = clauses[cIndex];
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
+	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+		bre = breaks[abs(*i)];
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
+		if(bre < maxLOcc){
+		sum+= lookUpTable[bre];
+		}
+		else{
+		sum+=(this->*Process::lookUp)(bre);
+		}
+		probs[j]= sum;
+		j++;
+	}
+	int cS = clauseT.size();
+	double temp;
+	if(cS > 0){
+		int index = (this->*randINT)()%cS;
+		int unsatN = unsatCs.size();
+		if(unsatN < maxLOcc){
+			temp = noise*lookUpTable[unsatN];
+		}
+		else{
+			temp = (this->*Process::lookUp)(unsatN);
+		}
+		greedyLiteral = clauseT[index];
+	}
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
+		}
+		randomLiteral= vList[i];
+		break;
+	}
+	if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
+	int s1 = tabuS[abs(greedyLiteral)];
+	int s2 = tabuS[abs(randomLiteral)]+s1;
+	if(s2==0  || (temp*((this->*randINT)()%s2)) > s1) return greedyLiteral;
+	else return randomLiteral;
+}
+template<class T>
+int Process<T>::getFlipLitS_Walk(int cIndex){
+
+		clauseT.clear();
+		vector<int>&  vList = clauses[cIndex];
+		int j=0,bre,min = numCs+1;
+		double sum=0,randD;
+		int greedyLiteral = 0;
+		int  randomLiteral;
+		for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+			bre = computeBreakScore(*i);
+			if(bre == 0){
+				clauseT.push_back(*i);
+			}
+			if(bre < maxLOcc){
+			sum+= lookUpTable[bre];
+			}
+			else{
+			sum+=(this->*Process::lookUp)(bre);
+			}
+			probs[j]= sum;
+			j++;
+		}
+		int cS = clauseT.size();
+		if(cS > 0){
+			int index = (this->*randINT)()%cS;
+			greedyLiteral = clauseT[index];
+		}
+		randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+		assert(randD >= 0);
+		for(int i = 0; i < j;i++){
+			if(probs[i]< randD){
+				continue;
+			}
+			randomLiteral= vList[i];
+			break;
+		}
+		if(cS  ==  0 || (greedyLiteral == randomLiteral)) return randomLiteral;
+		int s1 = tabuS[abs(greedyLiteral)];
+		int s2 = tabuS[abs(randomLiteral)]+s1;
+		if(s2==0  || ((this->*randINT)()%s2) > s1) return greedyLiteral;
+		else return randomLiteral;
+}
+template<class T>
+int Process<T>:: getFlipLitL_RF(int cIndex){
+	clauseT.clear();
+	vector<int>&  vList = clauses[cIndex];
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
+	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+		bre = breaks[abs(*i)];
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
+		if(bre < maxLOcc){
+		sum+= lookUpTable[bre];
+		}
+		else{
+		sum+=(this->*Process::lookUp)(bre);
+		}
+		probs[j]= sum;
+		j++;
+	}
+	int cS = clauseT.size();
+	if(cS > 0){
+		double temp = noise * (double)flipCount*(double)(this->*randINT)()/RAND_MAX;
+		int index = (this->*randINT)()%cS;
+		int unsatN = unsatCs.size();
+		if(unsatN < maxLOcc){
+			temp= temp*lookUpTable[unsatN];
+		}
+		else{
+		temp=  temp*(this->*Process::lookUp)(unsatN);
+		}
+		for(int i =0; i < cS; i++){
+			greedyLiteral = clauseT[index];
+			if(tabuS[abs(greedyLiteral)] < temp){
+				flipGCount++;
+				return greedyLiteral;
+			}
+			index = (index+1)%cS;
+		}
+
+	}
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
+		}
+		randomLiteral= vList[i];
+		break;
+	}
+	return randomLiteral;
+}
+template<class T>
+int Process<T>::getFlipLitS_RF(int cIndex){
+	clauseT.clear();
+	vector<int>&  vList = clauses[cIndex];
+	int j=0,bre,min = numCs+1;
+	double sum=0,randD;
+	int greedyLiteral = 0;
+	int  randomLiteral;
+	for (std::vector<int>::const_iterator i = vList.begin(); i != vList.end(); ++i){
+		bre = computeBreakScore(*i);
+		if(bre == 0){
+			clauseT.push_back(*i);
+		}
+		if(bre < maxLOcc){
+		sum+= lookUpTable[bre];
+		}
+		else{
+		sum+=(this->*Process::lookUp)(bre);
+		}
+		probs[j]= sum;
+		j++;
+	}
+	int cS = clauseT.size();
+	if(cS > 0){
+		double temp = noise* (double)flipCount*(double)(this->*randINT)()/RAND_MAX;
+		int index = (this->*randINT)()%cS;
+		int unsatN = unsatCs.size();
+		if(unsatN < maxLOcc){
+			temp= temp*lookUpTable[unsatN];
+		}
+		else{
+		temp=  temp*(this->*Process::lookUp)(unsatN);
+		}
+		for(int i =0; i < cS; i++){
+			greedyLiteral = clauseT[index];
+			if(tabuS[abs(greedyLiteral)] < temp){
+				flipGCount++;
+				return greedyLiteral;
+			}
+			index = (index+1)%cS;
+		}
+
+	}
+	randD = ((double)(this->*randINT)()/RAND_MAX)*sum;
+	assert(randD >= 0);
+	for(int i = 0; i < j;i++){
+		if(probs[i]< randD){
+			continue;
+		}
+		randomLiteral= vList[i];
+		break;
+	}
+	return randomLiteral;
+}
+template<class T>
+void Process<T>::flipS(int literal){
 	flipCount++;
 	std::vector<int>::const_iterator i;
 	if(literal > 0){
@@ -567,7 +725,7 @@ void Process<T>::flip3(int literal){
 	}
 }
 template<class T>
-void Process<T>::flip57(int literal){
+void Process<T>::flipL(int literal){
 	flipCount++;
 	int aIndex = abs(literal);
 	assign[aIndex] = (literal > 0);
@@ -683,6 +841,7 @@ template<class T>
 double Process<T>::func_poly(int literal){
 	return pow((eps+computeBreakScore(literal)),-cb);
 }
+// local search
 template<class T>
 void Process<T>::search_prob(){
 	int size = unsatCs.size();
@@ -702,8 +861,44 @@ void Process<T>::search_prob(){
 	(this->*flip)(flipLindex);
 	tabuS[abs(flipLindex)]++;
 }
+//lookup table initialization (exponential function)
+template<class T>
+void Process<T>::initLookUpTable_exp(){
 
-
+	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
+	for(int i = 0; i < maxLOcc;i++){
+		lookUpTable[i] = pow(cb,-i);
+	}
+}
+//lookup table initialization (polynomial function)
+template<class T>
+void Process<T>::initLookUpTable_poly(){
+	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
+	for(int i = 0; i < maxLOcc;i++){
+		lookUpTable[i] = pow((eps+i),-cb);
+	}
+}
+// get score of some break with exponential function
+template<class T>
+double Process<T>::LookUpTable_exp(int bre){
+	return pow(cb,-bre);
+};
+// get score of break with polynomial function
+template<class T>
+double Process<T>::LookUpTable_poly(int bre){
+	return pow((eps+bre),-cb);
+};
+// get random integer using one random generator
+template<class T>
+int Process<T>::randI(){
+	return distribution(generator);
+};
+// get random integer using one rand() function
+template<class T>
+int Process<T>::randI2(){
+	return rand();
+};
+//------------------------------------------------printing----------------------------------------------------------------------
 void printVector(vector<int>& vec){
 	for (std::vector<int>::const_iterator i = vec.begin(); i != vec.end(); ++i){
 		cout << *i << ' ';
@@ -748,36 +943,102 @@ void printUsage(){
 	printf("---------------------------------------------------------------------------------\n");
 }
 
-template<class T>
-void Process<T>::initLookUpTable_exp(){
 
-	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
-	for(int i = 0; i < maxLOcc;i++){
-		lookUpTable[i] = pow(cb,-i);
+void debugProblem(){
+	printVariables();
+	printClauses();
+	cout<< "Occurences:"<< endl;
+	for(int i = 1; i < numVs; i++){
+		cout<< i<< ":"<<posOc[i]<< " "<<negOc[i]<< endl;
 	}
 }
 template<class T>
-void Process<T>::initLookUpTable_poly(){
-	lookUpTable = (double*)malloc(sizeof(double) * maxLOcc);
-	for(int i = 0; i < maxLOcc;i++){
-		lookUpTable[i] = pow((eps+i),-cb);
-	}
+void Process<T>::debugAssign(){
+	/* Testing code**********************************/
+		printOptions();
+	   	printAssignment();
+	   	printUnsatCs();
+	   	printNumP();
+
+
+	/*Testing code**********************************/
+
 }
 template<class T>
-double Process<T>::LookUpTable_exp(int bre){
-	return pow(cb,-bre);
-};
+void Process<T>::printOptions(){
+	printf("localSAT options: \n");
+	cout<<"c seed: "<<seed<<endl;
+	cout<<"c fct: "<<fct<<endl;
+	cout<<"c ict: "<<ict<<endl;
+	cout<<"c cb: "<<cb<<endl;
+	cout<<"c eps: "<<eps<<endl;
+	cout<<"c lct: "<<lct<<endl;
+	switch(generator){
+	case 0:{
+		cout<<"c rand() generator with seed " <<seed <<endl;
+		break;
+		}
+	case 1:{
+		cout<<"c minstd_rand() generator with seed " <<seed <<endl;
+		break;
+		}
+	default:{
+		cout<<"c mersenne_twister_rand() generator with seed " <<seed <<endl;
+	}
+	}
+	switch(fct){
+	case 0:{
+		cout<<"c polynomial function"<<endl;
+		cout<<"c eps: "<<eps<<endl;
+		cout<<"c cb: "<<cb<<endl;
+		cout<< "pow((eps+break),-cb)" << endl;
+		break;
+		  }
+	default:{
+		cout<<"c exponential function"<<endl;
+		cout<<"c cb: "<<cb<<endl;
+		cout<< "pow(cb,-break)"<< endl;
+		break;
+		   }
+	}
+}
+void printVariables(){
+	cout<< "Variables "<< ": " <<endl ;
+   	for(int i = 1; i < numVs; i++){
+   		cout<< "Variable "<<i << ": " <<endl ;
+   		printVector(posC[i]);
+   		printVector(negC[i]);
+   	}
+}
+void printClauses(){
+	cout<< "Clauses "<< ": " << endl ;
+   	for(int i = 0; i < numCs; i++){
+   		cout<< "Clause "<< i<< ": " ;
+   		printVector(clauses[i]);
+   	}
+}
 template<class T>
-double Process<T>::LookUpTable_poly(int bre){
-	return pow((eps+bre),-cb);
-};
+void Process<T>::printAssignment(){
+	cout<< "v ";
+	for(int i = 1; i < numVs; i++){
+		if(assign[i]) cout <<i<<" ";
+		else cout << -i<<" ";
+	}
+	cout <<endl ;
+}
 template<class T>
-int Process<T>::randI(){
-	return distribution(generator);
-};
+void Process<T>::printUnsatCs(){
+	cout<< "Unsatisfied clauses ";
+	printVector(unsatCs);
+	cout <<endl ;
+}
+template<class T>
+void Process<T>::printNumP(){
+	cout<< "numP: ";
+	for(int i = 0; i < numCs; i++){
+		cout << numP[i]<< " ";
+	}
+	cout<<endl;
+}
 
-template<class T>
-int Process<T>::randI2(){
-	return rand();
-};
 
